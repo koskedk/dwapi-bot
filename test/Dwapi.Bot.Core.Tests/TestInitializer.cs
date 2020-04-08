@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using Dapper;
+using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.Core.Utility;
 using Dwapi.Bot.Infrastructure.Data;
 using MediatR;
@@ -54,8 +56,9 @@ namespace Dwapi.Bot.Core.Tests
 
             services
                 .AddTransient<BotContext>()
-                .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>();
-               // .AddTransient<IPhoneInvoiceRepository, PhoneInvoiceRepository>()
+                .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
+                .AddTransient<IMasterPatientIndexReader, MasterPatientIndexReader>()
+                .AddTransient<IPatientIndexRepository, PatientIndexRepository>();
                // .AddMediatR(typeof(ProcessInvoiceBatch).Assembly,typeof(ProcessInvoiceBatchProcessedNotification).Assembly)
                // .AddValidatorsFromAssemblyContaining<ProcessInvoiceBatch>()
 
