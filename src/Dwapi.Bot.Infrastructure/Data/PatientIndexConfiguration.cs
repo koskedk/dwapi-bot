@@ -16,6 +16,8 @@ namespace Dwapi.Bot.Infrastructure.Data
             DapperPlusManager.Entity<PatientIndex>()
                 .Table(nameof(BotContext.PatientIndices))
                 .Key(x => x.Id);
+
+            modelBuilder.HasKey(f => f.Id);
         }
     }
 }

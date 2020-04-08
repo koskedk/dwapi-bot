@@ -1,11 +1,12 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using Dwapi.Bot.Core.Utility;
 
 namespace Dwapi.Bot.Core.Domain.Indices
 {
     public class PatientIndexSiteScore
     {
-        public Guid Id { get;  }
+        public Guid Id { get; set; }
         public double Score { get; set; }
         private Guid PatientIndexId { get; set; }
         private Guid OtherPatientIndexId { get; set; }

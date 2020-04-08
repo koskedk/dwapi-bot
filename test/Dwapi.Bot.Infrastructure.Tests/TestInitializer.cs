@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dapper;
@@ -82,7 +83,20 @@ namespace Dwapi.Bot.Infrastructure.Tests
             */
         }
 
-
+        public static void ClearDb()
+        {
+            var context = ServiceProvider.GetService<BotContext>();
+            context.Database.EnsureCreated();
+        }
+        public static void SeedData(params IEnumerable<object>[] entities)
+        {
+            var context = ServiceProvider.GetService<BotContext>();
+            foreach (IEnumerable<object> t in entities)
+            {
+                context.AddRange(t);
+            }
+            context.SaveChanges();
+        }
 
         private void RegisterLicence()
         {

@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using Dapper;
+using Dwapi.Bot.Core.Application.Indices.Commands;
+using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.Core.Utility;
 using Dwapi.Bot.Infrastructure.Data;
@@ -58,28 +61,34 @@ namespace Dwapi.Bot.Core.Tests
                 .AddTransient<BotContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader, MasterPatientIndexReader>()
-                .AddTransient<IPatientIndexRepository, PatientIndexRepository>();
-               // .AddMediatR(typeof(ProcessInvoiceBatch).Assembly,typeof(ProcessInvoiceBatchProcessedNotification).Assembly)
-               // .AddValidatorsFromAssemblyContaining<ProcessInvoiceBatch>()
-
-
-            //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+                .AddTransient<IPatientIndexRepository, PatientIndexRepository>()
+                .AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
 
             Services = services;
 
             ServicesOnly = Services;
             ServiceProvider = Services.BuildServiceProvider();
 
-            /*
             Mapper.Initialize(cfg =>
             {
-                cfg.AddProfile<PhoneInvoiceProfile>();
+                cfg.AddProfile<PatientIndexProfile>();
             });
-            */
         }
 
-
+        public static void ClearDb()
+        {
+            var context = ServiceProvider.GetService<BotContext>();
+            context.Database.EnsureCreated();
+        }
+        public static void SeedData(params IEnumerable<object>[] entities)
+        {
+            var context = ServiceProvider.GetService<BotContext>();
+            foreach (IEnumerable<object> t in entities)
+            {
+                context.AddRange(t);
+            }
+            context.SaveChanges();
+        }
 
         private void RegisterLicence()
         {

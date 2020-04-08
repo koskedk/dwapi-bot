@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using Dwapi.Bot.Core.Utility;
 
 namespace Dwapi.Bot.Core.Domain.Indices
 {
     public class PatientIndex
     {
-        public Guid Id { get;  }
+        public Guid Id { get;  set; }
         private Guid MpiId { get; set; }
         public int PatientPk { get; set; }
         public int SiteCode { get; set; }

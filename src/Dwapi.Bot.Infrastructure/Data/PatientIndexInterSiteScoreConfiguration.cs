@@ -16,6 +16,8 @@ namespace Dwapi.Bot.Infrastructure.Data
             DapperPlusManager.Entity<PatientIndexInterSiteScore>()
                 .Table(nameof(BotContext.InterSiteScores))
                 .Key(x => x.Id);
+
+            modelBuilder.HasKey(f => f.Id);
         }
     }
 }
