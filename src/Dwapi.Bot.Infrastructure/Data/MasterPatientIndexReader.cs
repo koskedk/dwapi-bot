@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
-using Dwapi.Bot.Core.Domain.Common;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.Infrastructure.Configuration;
+using Dwapi.Bot.SharedKernel.Common;
 using Microsoft.Data.Sqlite;
 using Z.Dapper.Plus;
-using DbType = Dwapi.Bot.Core.Domain.Common.DbType;
 
 namespace Dwapi.Bot.Infrastructure.Data
 {
@@ -63,7 +63,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                  FETCH NEXT @PageSize ROWS ONLY
             ";
 
-            if (SourceInfo.DbType == DbType.SQLite)
+            if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
             {
                 sqlPaging = @" LIMIT @PageSize OFFSET @Offset;";
             }
@@ -87,10 +87,10 @@ namespace Dwapi.Bot.Infrastructure.Data
         {
             var connectionString = SourceInfo.Connection;
 
-            if (SourceInfo.DbType == DbType.MsSQL)
+            if (SourceInfo.DbType == SharedKernel.Enums.DbType.MsSQL)
                 return new System.Data.SqlClient.SqlConnection(connectionString);
 
-            if (SourceInfo.DbType == DbType.SQLite)
+            if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
                 return new SqliteConnection(connectionString);
 
             return null;

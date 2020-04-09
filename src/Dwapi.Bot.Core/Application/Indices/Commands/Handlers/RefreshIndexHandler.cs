@@ -15,10 +15,10 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
     public class RefreshIndexHandler : IRequestHandler<RefreshIndex, Result>
     {
         private readonly IMediator _mediator;
-        private readonly IPatientIndexRepository _repository;
+        private readonly ISubjectIndexRepository _repository;
         private readonly IMasterPatientIndexReader _reader;
 
-        public RefreshIndexHandler(IMediator mediator, IPatientIndexRepository repository, IMasterPatientIndexReader reader)
+        public RefreshIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader)
         {
             _mediator = mediator;
             _repository = repository;
@@ -42,7 +42,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
                 {
                     var mpis = await _reader.Read(page, request.BatchSize);
 
-                    var pis= Mapper.Map<List<PatientIndex>>(mpis);
+                    var pis= Mapper.Map<List<SubjectIndex>>(mpis);
 
                     _repository.CreateOrUpdate(pis);
 

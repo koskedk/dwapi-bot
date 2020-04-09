@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Dwapi.Bot.Core.Domain.Common;
+using Dwapi.Bot.SharedKernel.Common;
 
 namespace Dwapi.Bot.Core.Domain.Readers
 {

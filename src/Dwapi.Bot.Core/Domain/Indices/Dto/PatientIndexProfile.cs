@@ -7,7 +7,7 @@ namespace Dwapi.Bot.Core.Domain.Indices.Dto
     {
         public PatientIndexProfile()
         {
-            CreateMap<MasterPatientIndex, PatientIndex>()
+            CreateMap<MasterPatientIndex, SubjectIndex>()
                 .ForMember(x=>x.Id,o=>o.Ignore())
                 .ForMember(x=>x.MpiId, o=>o.MapFrom(s=>s.Id));
         }

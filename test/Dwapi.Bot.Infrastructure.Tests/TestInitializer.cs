@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dapper;
-using Dwapi.Bot.Core.Domain.Common;
+using Dwapi.Bot.Core.Algorithm.JaroWinkler;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Readers;
-using Dwapi.Bot.Core.Utility;
 using Dwapi.Bot.Infrastructure.Data;
+using Dwapi.Bot.SharedKernel.Common;
+using Dwapi.Bot.SharedKernel.Enums;
+using Dwapi.Bot.SharedKernel.Utility;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -62,7 +64,7 @@ namespace Dwapi.Bot.Infrastructure.Tests
                 .AddTransient<BotContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
-                .AddTransient<IPatientIndexRepository, PatientIndexRepository>();
+                .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>();
 
             Services = services;
 

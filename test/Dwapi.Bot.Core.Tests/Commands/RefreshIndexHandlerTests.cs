@@ -1,5 +1,6 @@
 using System;
 using Dwapi.Bot.Core.Application.Indices.Commands;
+using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using FizzWare.NBuilder;
 using MediatR;
@@ -28,7 +29,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         }
 
         [Test]
-        public void should_Process_Invoice_Batch()
+        public void should_Refresh()
         {
             var command = new RefreshIndex(5);
 

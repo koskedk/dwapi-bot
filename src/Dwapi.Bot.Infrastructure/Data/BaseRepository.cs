@@ -1,0 +1,108 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Dapper;
+using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.SharedKernel.Interfaces.Data;
+using Dwapi.Bot.SharedKernel.Model;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Z.Dapper.Plus;
+
+namespace Dwapi.Bot.Infrastructure.Data
+{
+   public abstract class BaseRepository<T, TId> : IRepository<T, TId> where T : Entity<TId>
+    {
+        protected internal DbContext Context;
+        protected internal readonly DbSet<T> DbSet;
+        private IDbConnection _connection;
+
+        public string ConnectionString => Context.Database.GetDbConnection().ConnectionString;
+
+        protected BaseRepository(DbContext context)
+        {
+            Context = context;
+            DbSet = Context.Set<T>();
+        }
+        public virtual Task<TC> GetByIdAsync<TC, TCId>(TCId id) where TC : Entity<TCId>
+        {
+            return GetAll<TC, TCId>().FirstOrDefaultAsync(x => x.Id.Equals(id));
+        }
+
+        public virtual IQueryable<TC> GetAll<TC, TCId>() where TC : Entity<TCId>
+        {
+            return Context.Set<TC>().AsNoTracking();
+        }
+
+       public virtual IQueryable<TC> GetAll<TC, TCId>(Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>
+        {
+            return GetAll<TC, TCId>().Where(predicate);
+        }
+
+       public virtual async Task<bool> ExistsAsync<TC, TCId>(TC entity) where TC : Entity<TCId>
+       {
+           return null != await GetByIdAsync<TC, TCId>(entity.Id);
+       }
+        public virtual async Task<bool> ExistsAsync<TC, TCId>(Expression<Func<TC, bool>> predicate)
+            where TC : Entity<TCId>
+        {
+            var entity = await GetAll<TC, TCId>().FirstOrDefaultAsync(predicate);
+            return null != entity;
+        }
+
+        public virtual async Task CreateOrUpdateAsync<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>
+        {
+            var updates = new List<TC>();
+            var inserts = new List<TC>();
+
+            foreach (var entity in entities)
+            {
+                var exists = await ExistsAsync<TC,TCId>(entity);
+                if (exists)
+                    updates.Add(entity);
+                else
+                    inserts.Add(entity);
+            }
+
+            if (inserts.Any())
+                GetConnection().BulkInsert(inserts);
+
+            if (updates.Any())
+                GetConnection().BulkUpdate(updates);
+        }
+
+        public virtual IDbConnection GetConnection(bool open = true)
+        {
+            if (null == _connection)
+            {
+                if (Context.Database.IsSqlServer())
+                    _connection = new SqlConnection(ConnectionString);
+
+                if (Context.Database.IsSqlite())
+                    _connection = new SqliteConnection(ConnectionString);
+            }
+
+            if (null == _connection)
+                throw new Exception("Database provider error");
+
+            if (_connection.State != ConnectionState.Open)
+                _connection.Open();
+
+            return _connection;
+        }
+
+        public Task ExecCommand(string sqlCommand)
+        {
+            return Context.Database.ExecuteSqlRawAsync(sqlCommand);
+        }
+
+        public virtual Task SaveAsync()
+        {
+            return Context.SaveChangesAsync();
+        }
+    }
+}
