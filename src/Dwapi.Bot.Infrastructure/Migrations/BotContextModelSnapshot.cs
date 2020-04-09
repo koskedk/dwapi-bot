@@ -22,16 +22,19 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("DOB")
+                    b.Property<DateTime?>("DOB")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("FacilityId")
+                    b.Property<Guid?>("FacilityId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FacilityName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Gender")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("MpiId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PatientID")
@@ -96,13 +99,13 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                     b.Property<Guid?>("PatientIndexId1")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Rank")
+                    b.Property<double?>("Rank")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("REAL");
 
-                    b.Property<Guid>("Session")
+                    b.Property<Guid?>("Session")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -121,13 +124,13 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                     b.Property<Guid?>("PatientIndexId1")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Rank")
+                    b.Property<double?>("Rank")
                         .HasColumnType("REAL");
 
-                    b.Property<double>("Score")
+                    b.Property<double?>("Score")
                         .HasColumnType("REAL");
 
-                    b.Property<Guid>("Session")
+                    b.Property<Guid?>("Session")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

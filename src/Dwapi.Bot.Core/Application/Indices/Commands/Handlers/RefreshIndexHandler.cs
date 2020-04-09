@@ -18,6 +18,13 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
         private readonly IPatientIndexRepository _repository;
         private readonly IMasterPatientIndexReader _reader;
 
+        public RefreshIndexHandler(IMediator mediator, IPatientIndexRepository repository, IMasterPatientIndexReader reader)
+        {
+            _mediator = mediator;
+            _repository = repository;
+            _reader = reader;
+        }
+
         public async Task<Result> Handle(RefreshIndex request, CancellationToken cancellationToken)
         {
             Log.Debug("refreshing patient index...");

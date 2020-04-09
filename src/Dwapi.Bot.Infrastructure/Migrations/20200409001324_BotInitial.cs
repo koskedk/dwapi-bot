@@ -12,12 +12,13 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    MpiId = table.Column<Guid>(nullable: false),
                     PatientPk = table.Column<int>(nullable: false),
                     SiteCode = table.Column<int>(nullable: false),
                     FacilityName = table.Column<string>(nullable: true),
                     Serial = table.Column<string>(nullable: true),
                     Gender = table.Column<string>(nullable: true),
-                    DOB = table.Column<DateTime>(nullable: false),
+                    DOB = table.Column<DateTime>(nullable: true),
                     PatientID = table.Column<string>(nullable: true),
                     dmFirstName = table.Column<string>(nullable: true),
                     dmMiddleName = table.Column<string>(nullable: true),
@@ -31,7 +32,7 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                     sxPKValueDoB = table.Column<string>(nullable: true),
                     dmPKValueDoB = table.Column<string>(nullable: true),
                     sxdmPKValueDoB = table.Column<string>(nullable: true),
-                    FacilityId = table.Column<Guid>(nullable: false)
+                    FacilityId = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -43,9 +44,9 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    Score = table.Column<double>(nullable: false),
-                    Session = table.Column<Guid>(nullable: false),
-                    Rank = table.Column<double>(nullable: false),
+                    Score = table.Column<double>(nullable: true),
+                    Session = table.Column<Guid>(nullable: true),
+                    Rank = table.Column<double>(nullable: true),
                     PatientIndexId1 = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>
@@ -64,9 +65,9 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    Score = table.Column<double>(nullable: false),
-                    Session = table.Column<Guid>(nullable: false),
-                    Rank = table.Column<double>(nullable: false),
+                    Score = table.Column<double>(nullable: true),
+                    Session = table.Column<Guid>(nullable: true),
+                    Rank = table.Column<double>(nullable: true),
                     PatientIndexId1 = table.Column<Guid>(nullable: true)
                 },
                 constraints: table =>

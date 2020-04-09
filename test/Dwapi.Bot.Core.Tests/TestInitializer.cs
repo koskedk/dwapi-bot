@@ -6,6 +6,7 @@ using AutoMapper;
 using Dapper;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Domain.Common;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
@@ -29,6 +30,7 @@ namespace Dwapi.Bot.Core.Tests
         public static IServiceCollection Services;
         public static IServiceCollection ServicesOnly;
         public static string ConnectionString;
+        public static string MpiConnectionString;
         public static IConfigurationRoot Configuration;
 
         [OneTimeSetUp]
@@ -49,6 +51,11 @@ namespace Dwapi.Bot.Core.Tests
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
+
+            var mpiConnectionString = config.GetConnectionString("mpiConnection")
+                .Replace("#dir#", dir);
+            MpiConnectionString = mpiConnectionString.ToOsStyle();
+
             var connectionString = config.GetConnectionString("liveConnection")
                 .Replace("#dir#", dir);
             ConnectionString = connectionString.ToOsStyle();
@@ -60,7 +67,7 @@ namespace Dwapi.Bot.Core.Tests
             services
                 .AddTransient<BotContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
-                .AddTransient<IMasterPatientIndexReader, MasterPatientIndexReader>()
+                .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
                 .AddTransient<IPatientIndexRepository, PatientIndexRepository>()
                 .AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
 
@@ -102,7 +109,7 @@ namespace Dwapi.Bot.Core.Tests
         private void RemoveTestsFilesDbs()
         {
             string[] keyFiles =
-                { "dwapibot.db"};
+                { "dwapibot.db","mpi.db"};
             string[] keyDirs = { @"TestArtifacts/Database".ToOsStyle()};
 
             foreach (var keyDir in keyDirs)

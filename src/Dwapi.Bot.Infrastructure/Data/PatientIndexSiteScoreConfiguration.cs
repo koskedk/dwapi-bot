@@ -13,7 +13,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             if(DapperPlusManager.MapperCache.Keys.Any(x=>x.EndsWith(nameof(PatientIndexSiteScore))))
                 return;
 
-            DapperPlusManager.Entity<PatientIndex>()
+            DapperPlusManager.Entity<PatientIndexSiteScore>()
                 .Table(nameof(BotContext.SiteScores))
                 .Key(x => x.Id);
 

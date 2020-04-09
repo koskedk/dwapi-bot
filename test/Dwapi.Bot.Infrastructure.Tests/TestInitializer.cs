@@ -63,24 +63,11 @@ namespace Dwapi.Bot.Infrastructure.Tests
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
                 .AddTransient<IPatientIndexRepository, PatientIndexRepository>();
-               // .AddMediatR(typeof(ProcessInvoiceBatch).Assembly,typeof(ProcessInvoiceBatchProcessedNotification).Assembly)
-               // .AddValidatorsFromAssemblyContaining<ProcessInvoiceBatch>()
-
-
-            //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-            // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             Services = services;
 
             ServicesOnly = Services;
             ServiceProvider = Services.BuildServiceProvider();
-
-            /*
-            Mapper.Initialize(cfg =>
-            {
-                cfg.AddProfile<PhoneInvoiceProfile>();
-            });
-            */
         }
 
         public static void ClearDb()
