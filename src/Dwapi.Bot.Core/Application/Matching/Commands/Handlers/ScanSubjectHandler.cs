@@ -78,7 +78,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
                             foreach (var otherSubject in otherSubjects)
                             {
                                 var score = SubjectIndexScore.GenerateScore(subject, otherSubject, request.Level,
-                                    _scorer, request.Field);
+                                    _scorer, request.Field,request.LevelCode);
                                 scores.Add(score);
                             }
 
