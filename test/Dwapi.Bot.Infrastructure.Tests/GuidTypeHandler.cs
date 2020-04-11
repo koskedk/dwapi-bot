@@ -1,7 +1,7 @@
 using System;
 using Dapper;
 
-namespace Dwapi.Bot.Core.Tests
+namespace Dwapi.Bot.Infrastructure.Tests
 {
     public class GuidTypeHandler : SqlMapper.TypeHandler<Guid>
     {

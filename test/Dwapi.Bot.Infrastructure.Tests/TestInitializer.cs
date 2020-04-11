@@ -1,22 +1,16 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using AutoMapper;
 using Dapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
-using Dwapi.Bot.Core.Application.Indices.Commands;
-using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
-using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
-using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
-using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +19,7 @@ using NUnit.Framework;
 using Serilog;
 using Z.Dapper.Plus;
 
-namespace Dwapi.Bot.Core.Tests
+namespace Dwapi.Bot.Infrastructure.Tests
 {
     [SetUpFixture]
     public class TestInitializer
@@ -55,7 +49,6 @@ namespace Dwapi.Bot.Core.Tests
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-
             var mpiConnectionString = config.GetConnectionString("mpiConnection")
                 .Replace("#dir#", dir);
             MpiConnectionString = mpiConnectionString.ToOsStyle();
@@ -71,20 +64,15 @@ namespace Dwapi.Bot.Core.Tests
             services
                 .AddTransient<BotContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
-                .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
+                .AddTransient<IMasterPatientIndexReader>(s =>
+                    new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
-                .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
-                .AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
+                .AddTransient<IMatchConfigRepository, MatchConfigRepository>();
 
             Services = services;
 
             ServicesOnly = Services;
             ServiceProvider = Services.BuildServiceProvider();
-
-            Mapper.Initialize(cfg =>
-            {
-                cfg.AddProfile<PatientIndexProfile>();
-            });
         }
 
         public static void ClearDb()

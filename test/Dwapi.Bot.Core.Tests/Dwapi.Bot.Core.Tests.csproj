@@ -7,8 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="AutoMapper" Version="8.1.0" />
     <PackageReference Include="CSharpFunctionalExtensions" Version="2.6.0" />
+    <PackageReference Include="CsvHelper" Version="15.0.1" />
     <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
     <PackageReference Include="FluentValidationExtensions" Version="0.0.4" />
@@ -37,10 +38,13 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TestArtifacts\Database\dwapibot.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestArtifacts\Database\mpi.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

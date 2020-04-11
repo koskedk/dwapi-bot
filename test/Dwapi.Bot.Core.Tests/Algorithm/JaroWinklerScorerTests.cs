@@ -1,10 +1,10 @@
 using System;
-using Dwapi.Bot.Core.Utility;
+using Dwapi.Bot.Core.Algorithm.JaroWinkler;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Serilog;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace Dwapi.Bot.Core.Tests.Utility
+namespace Dwapi.Bot.Core.Tests.Algorithm
 {
     [TestFixture]
     public class JaroWinklerScorerTests
