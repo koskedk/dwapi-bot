@@ -9,7 +9,6 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public ScanStatus Status { get; set; }
         public string StatusInfo { get; set; }
         public DateTime StatusDate { get; set; } = DateTime.Now;
-        public Guid PatientIndexId { get; set; }
-
+        public Guid SubjectIndexId { get; set; }
     }
 }

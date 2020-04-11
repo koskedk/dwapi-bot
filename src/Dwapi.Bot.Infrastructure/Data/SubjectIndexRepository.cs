@@ -89,6 +89,7 @@ namespace Dwapi.Bot.Infrastructure.Data
         public Task<int> GetBlockRecordCount(SubjectIndex subject, ScanLevel level)
         {
             var query = GetAll<SubjectIndex, Guid>(x =>
+                x.Id!=subject.Id &&
                 x.Gender == subject.Gender &&
                 x.DOB.Value.Year == subject.DOB.Value.Year);
 
@@ -102,12 +103,14 @@ namespace Dwapi.Bot.Infrastructure.Data
         {
             if (level == ScanLevel.Site)
                 return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId), x =>
+                        x.Id!=subject.Id &&
                         x.SiteCode == subject.SiteCode &&
                         x.Gender == subject.Gender &&
                         x.DOB.Value.Year == subject.DOB.Value.Year)
                     .ToListAsync();
 
             return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId), x =>
+                    x.Id!=subject.Id &&
                     x.Gender == subject.Gender &&
                     x.DOB.Value.Year == subject.DOB.Value.Year)
                 .ToListAsync();

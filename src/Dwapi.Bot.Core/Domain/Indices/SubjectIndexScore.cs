@@ -8,20 +8,20 @@ namespace Dwapi.Bot.Core.Domain.Indices
     public class SubjectIndexScore:Entity<Guid>
     {
         public ScanLevel ScanLevel { get; set; }
-        public Guid PatientIndexId { get; set; }
-        public Guid OtherPatientIndexId { get; set; }
+        public Guid OtherSubjectIndexId { get; set; }
         public SubjectField Field { get; set; }
         public double Score { get; set; }
+        public Guid SubjectIndexId { get; set; }
 
         public SubjectIndexScore()
         {
         }
 
-        public SubjectIndexScore(ScanLevel scanLevel, Guid patientIndexId, Guid otherPatientIndexId, SubjectField field)
+        public SubjectIndexScore(ScanLevel scanLevel, Guid subjectIndexId, Guid otherSubjectIndexId, SubjectField field)
         {
             ScanLevel = scanLevel;
-            PatientIndexId = patientIndexId;
-            OtherPatientIndexId = otherPatientIndexId;
+            SubjectIndexId = subjectIndexId;
+            OtherSubjectIndexId = otherSubjectIndexId;
             Field = field;
         }
 

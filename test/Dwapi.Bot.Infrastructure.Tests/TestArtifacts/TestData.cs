@@ -39,7 +39,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
 
           return Builder<SubjectIndexScore>.CreateListOfSize(count)
             .All()
-            .With(x=>x.PatientIndexId=subject.Id)
+            .With(x=>x.SubjectIndexId=subject.Id)
             .Build()
             .ToList();
         }
@@ -50,7 +50,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
 
           return Builder<SubjectIndexStage>.CreateListOfSize(count)
             .All()
-            .With(x=>x.PatientIndexId=subject.Id)
+            .With(x=>x.SubjectIndexId=subject.Id)
             .Build()
             .ToList();
         }
