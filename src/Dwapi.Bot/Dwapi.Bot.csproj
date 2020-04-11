@@ -24,13 +24,16 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="logs" />
-    </ItemGroup>
-
-    <ItemGroup>
       <_ContentIncludedByDefault Remove="clientsrc\package.json" />
       <_ContentIncludedByDefault Remove="clientsrc\public\manifest.json" />
       <_ContentIncludedByDefault Remove="clientsrc\tsconfig.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="logs\wwwroot\index.html">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
