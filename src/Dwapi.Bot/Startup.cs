@@ -42,7 +42,7 @@ namespace Dwapi.Bot
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllersWithViews();
 
             var connectionString = Configuration["ConnectionStrings:botConnection"];
             var mpiConnectionString = Configuration["ConnectionStrings:mpiConnection"];
@@ -71,19 +71,18 @@ namespace Dwapi.Bot
             else
             {
                 app.UseHsts();
+                app.UseHttpsRedirection();
             }
 
             app.UseCors(
-                    builder => builder
-                        .WithOrigins("http://localhost:3000")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials())
-                .UseStaticFiles()
-                .UseWebSockets();
+                builder => builder
+                    .WithOrigins("http://localhost:3000")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials());
 
-            // app.UseHttpsRedirection();
             app.UseDefaultFiles();
+            app.UseStaticFiles();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
