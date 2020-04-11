@@ -89,6 +89,7 @@ namespace Dwapi.Bot.Core.Tests
         {
             var context = ServiceProvider.GetService<BotContext>();
             context.Database.EnsureCreated();
+            context.EnsureSeeded();
         }
         public static void SeedData(params IEnumerable<object>[] entities)
         {

@@ -6,8 +6,6 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Dapper;
-using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Interfaces.Data;
 using Dwapi.Bot.SharedKernel.Model;
 using Microsoft.Data.Sqlite;

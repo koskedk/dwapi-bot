@@ -8,6 +8,21 @@ namespace Dwapi.Bot.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "MatchConfigs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    MatchStatus = table.Column<int>(nullable: false),
+                    MinThreshold = table.Column<double>(nullable: true),
+                    MaxThreshold = table.Column<double>(nullable: true),
+                    Description = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MatchConfigs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SubjectIndices",
                 columns: table => new
                 {
@@ -46,9 +61,11 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(nullable: false),
                     ScanLevel = table.Column<int>(nullable: false),
+                    ScanLevelCode = table.Column<string>(nullable: true),
                     OtherSubjectIndexId = table.Column<Guid>(nullable: false),
                     Field = table.Column<int>(nullable: false),
                     Score = table.Column<double>(nullable: false),
+                    Status = table.Column<int>(nullable: false),
                     SubjectIndexId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
@@ -96,6 +113,9 @@ namespace Dwapi.Bot.Infrastructure.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "MatchConfigs");
+
             migrationBuilder.DropTable(
                 name: "SubjectIndexScores");
 

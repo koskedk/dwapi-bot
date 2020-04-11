@@ -1,0 +1,6 @@
+Id,MatchStatus,MinThreshold,MaxThreshold,Description
+0136b3e8-7c14-11ea-bc55-0242ac130003,0,,,None
+0136b69a-7c14-11ea-bc55-0242ac130003,1,1,1.1,Match
+0136b92e-7c14-11ea-bc55-0242ac130003,2,,96,1,Possible Match
+0136ba14-7c14-11ea-bc55-0242ac130003,3,0,.96,Non Match
+

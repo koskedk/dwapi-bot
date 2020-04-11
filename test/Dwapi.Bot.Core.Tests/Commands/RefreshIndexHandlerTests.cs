@@ -1,10 +1,6 @@
-using System;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Infrastructure;
-using Dwapi.Bot.Infrastructure.Data;
-using FizzWare.NBuilder;
 using MediatR;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Microsoft.Extensions.DependencyInjection;
 

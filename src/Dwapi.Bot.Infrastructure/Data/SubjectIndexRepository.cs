@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Enums;
 using Microsoft.EntityFrameworkCore;
-using Z.Dapper.Plus;
 
 namespace Dwapi.Bot.Infrastructure.Data
 {

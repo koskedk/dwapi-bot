@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
@@ -7,7 +6,6 @@ using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.Infrastructure.Configuration;
 using Dwapi.Bot.SharedKernel.Common;
 using Microsoft.Data.Sqlite;
-using Z.Dapper.Plus;
 
 namespace Dwapi.Bot.Infrastructure.Data
 {

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
 using Dwapi.Bot.Core.Application.Matching.Events;
+using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
@@ -17,18 +19,23 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
+        private readonly IMatchConfigRepository _configRepository;
         private readonly IJaroWinklerScorer _scorer;
 
-        public ScanSubjectHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer)
+        public ScanSubjectHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer, IMatchConfigRepository configRepository)
         {
             _mediator = mediator;
             _repository = repository;
             _scorer = scorer;
+            _configRepository = configRepository;
         }
 
         public async Task<Result> Handle(ScanSubject request, CancellationToken cancellationToken)
         {
             Log.Debug($"scanning {request.Level}:{request.LevelCode} ...");
+
+            var configs = _configRepository.GetConfigs().ToList();
+
             try
             {
                 int page = 1;
@@ -78,7 +85,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
                             foreach (var otherSubject in otherSubjects)
                             {
                                 var score = SubjectIndexScore.GenerateScore(subject, otherSubject, request.Level,
-                                    _scorer, request.Field,request.LevelCode);
+                                    _scorer, request.Field,request.LevelCode,configs);
                                 scores.Add(score);
                             }
 

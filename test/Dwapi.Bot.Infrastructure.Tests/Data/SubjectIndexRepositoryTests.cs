@@ -1,11 +1,8 @@
-using System;
 using System.Linq;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
-using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.Infrastructure.Tests.TestArtifacts;
 using Dwapi.Bot.SharedKernel.Enums;
-using FizzWare.NBuilder;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Serilog;

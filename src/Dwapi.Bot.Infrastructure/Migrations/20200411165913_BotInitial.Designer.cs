@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Dwapi.Bot.Infrastructure.Migrations
 {
     [DbContext(typeof(BotContext))]
-    [Migration("20200411143258_BotInitial")]
+    [Migration("20200411165913_BotInitial")]
     partial class BotInitial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -17,6 +17,29 @@ namespace Dwapi.Bot.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.3");
+
+            modelBuilder.Entity("Dwapi.Bot.Core.Domain.Configs.MatchConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MatchStatus")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double?>("MaxThreshold")
+                        .HasColumnType("REAL");
+
+                    b.Property<double?>("MinThreshold")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MatchConfigs");
+                });
 
             modelBuilder.Entity("Dwapi.Bot.Core.Domain.Indices.SubjectIndex", b =>
                 {
@@ -110,8 +133,14 @@ namespace Dwapi.Bot.Infrastructure.Migrations
                     b.Property<int>("ScanLevel")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ScanLevelCode")
+                        .HasColumnType("TEXT");
+
                     b.Property<double>("Score")
                         .HasColumnType("REAL");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("SubjectIndexId")
                         .HasColumnType("TEXT");
