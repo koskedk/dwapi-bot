@@ -6,6 +6,7 @@ using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
 using Dwapi.Bot.Core.Application.Matching.Events;
 using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
@@ -31,23 +32,42 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             try
             {
                 int page = 1;
-                var totalRecords = await _repository.GetRecordCount();
+                int totalRecords;
+
+                if (request.Level == ScanLevel.Site)
+                {
+                    totalRecords = await _repository.GetRecordCount(request.Level, request.LevelCode);
+                }
+                else
+                {
+                    totalRecords= await _repository.GetRecordCount();
+                }
+
                 var pageCount = Custom.PageCount(request.Size, totalRecords);
 
                 while (page <= pageCount)
                 {
                     // Subjects
+                    List<SubjectIndex> subjects;
 
-                    var subjects =await  _repository.Read(page, request.Size);
+                    if (request.Level == ScanLevel.Site)
+                    {
+                        subjects = await _repository.Read(page, request.Size, request.Level, request.LevelCode);
+                    }
+                    else
+                    {
+                        subjects = await _repository.Read(page, request.Size);
+                    }
 
                     foreach (var subject in subjects)
                     {
-                       var scores=new List<SubjectIndexScore>();
+                        var scores = new List<SubjectIndexScore>();
                         // Block
 
                         int blockPage = 1;
                         var totalBlockRecords = await _repository.GetBlockRecordCount(subject, request.Level);
                         var blockPageCount = Custom.PageCount(request.BlockSize, totalBlockRecords);
+
                         while (blockPage <= blockPageCount)
                         {
                             // SCORE
@@ -57,25 +77,24 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
 
                             foreach (var otherSubject in otherSubjects)
                             {
-                                var score = new SubjectIndexScore();
-                                score.GenerateScore(subject, otherSubject, _scorer,request.Field);
-
+                                var score = SubjectIndexScore.GenerateScore(subject, otherSubject, request.Level,
+                                    _scorer, request.Field);
                                 scores.Add(score);
                             }
 
-                            await _repository.CreateOrUpdateAsync<SubjectIndexScore,Guid>(scores);
+                            await _repository.CreateOrUpdateAsync<SubjectIndexScore, Guid>(scores);
 
                             // BLOCK NOTIFY
 
                             blockPage++;
                         }
-                    }
 
-                    // SUBJECT NOTIFY
+                        // SUBJECT NOTIFY
+                        await _mediator.Publish(new SubjectScanned(subject.Id, request.Level), cancellationToken);
+                    }
 
                     page++;
                 }
-
 
                 return Result.Ok();
             }

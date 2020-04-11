@@ -34,6 +34,23 @@ namespace Dwapi.Bot.Infrastructure.Data
             return GetAll<TC, TCId>().FirstOrDefaultAsync(x => x.Id.Equals(id));
         }
 
+        public async Task<int> GetCount<TC, TCId>() where TC : Entity<TCId>
+        {
+            var count = await GetAll<TC, TCId>()
+                .Select(x => x.Id)
+                .CountAsync();
+            return count;
+        }
+
+        public async Task<int> GetCount<TC, TCId>(Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>
+        {
+            var count = await GetAll<TC, TCId>()
+                .Where(predicate)
+                .Select(x => x.Id)
+                .CountAsync();
+            return count;;
+        }
+
         public virtual IQueryable<TC> GetAll<TC, TCId>() where TC : Entity<TCId>
         {
             return Context.Set<TC>().AsNoTracking();

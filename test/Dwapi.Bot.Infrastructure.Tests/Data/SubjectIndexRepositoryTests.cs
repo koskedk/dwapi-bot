@@ -29,6 +29,13 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         {
             _repository = TestInitializer.ServiceProvider.GetService<ISubjectIndexRepository>();
         }
+        [Test,Order(1)]
+        public void should_Get_All()
+        {
+            var subjects = _repository.GetAllSubjects().Result.ToList();
+            Assert.True(subjects.Any());
+            Log.Debug($"{subjects.Count} Records");
+        }
 
         [Test,Order(1)]
         public void should_Get_Count()
@@ -37,7 +44,13 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
-
+        [Test,Order(1)]
+        public void should_Get_Site_Count()
+        {
+            var count = _repository.GetRecordCount(ScanLevel.Site,"13165").Result;
+            Assert.True((count > 0));
+            Log.Debug($"{count} Records");
+        }
         [Test,Order(1)]
         public void should_Read_Paged()
         {
@@ -52,9 +65,9 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         [Test,Order(1)]
         public void should_Read_Site_Paged()
         {
-            var bySitePg1 = _repository.Read(1, 3,13165).Result.ToList();
+            var bySitePg1 = _repository.Read(1, 3,ScanLevel.Site, "13165").Result.ToList();
             Assert.True((bySitePg1.Count == 3));
-            var bySitePg2 = _repository.Read(2, 3,13165).Result.ToList();
+            var bySitePg2 = _repository.Read(2, 3,ScanLevel.Site, "13165").Result.ToList();
             Assert.True((bySitePg2.Count == 2));
         }
 

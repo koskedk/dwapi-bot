@@ -11,6 +11,8 @@ namespace Dwapi.Bot.SharedKernel.Interfaces.Data
     public interface IRepository<T, in TId>  where T : Entity<TId>
     {
         Task<TC> GetByIdAsync<TC, TCId>(TCId id) where TC : Entity<TCId>;
+        Task<int> GetCount<TC, TCId>() where TC : Entity<TCId>;
+        Task<int> GetCount<TC, TCId>(Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>;
         IQueryable<TC> GetAll<TC, TCId>() where TC : Entity<TCId>;
         IQueryable<TC> GetAll<TC, TCId>(Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>;
         IQueryable<TC> GetAllPaged<TC, TCId>(int page, int pageSize,string orderBy) where TC : Entity<TCId>;

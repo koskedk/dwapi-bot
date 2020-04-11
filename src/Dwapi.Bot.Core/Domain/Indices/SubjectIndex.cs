@@ -36,5 +36,10 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public int RowId { get; set; }
         public ICollection<SubjectIndexScore> IndexScores { get; set; }=new List<SubjectIndexScore>();
         public ICollection<SubjectIndexStage> IndexStages { get; set; }=new List<SubjectIndexStage>();
+
+        public override string ToString()
+        {
+            return $"{SiteCode}|{Serial}|{sxdmPKValueDoB}";
+        }
     }
 }

@@ -13,13 +13,35 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public SubjectField Field { get; set; }
         public double Score { get; set; }
 
-        public void GenerateScore(SubjectIndex subjectIndex,SubjectIndex otherSubjectIndex, IJaroWinklerScorer scorer,SubjectField field)
+        public SubjectIndexScore()
+        {
+        }
+
+        public SubjectIndexScore(ScanLevel scanLevel, Guid patientIndexId, Guid otherPatientIndexId, SubjectField field)
+        {
+            ScanLevel = scanLevel;
+            PatientIndexId = patientIndexId;
+            OtherPatientIndexId = otherPatientIndexId;
+            Field = field;
+        }
+
+        public static SubjectIndexScore GenerateScore(SubjectIndex subjectIndex,SubjectIndex otherSubjectIndex,ScanLevel scanLevel, IJaroWinklerScorer scorer,SubjectField field)
+        {
+            var indexScore=new SubjectIndexScore(scanLevel,subjectIndex.Id,otherSubjectIndex.Id,field);
+            indexScore.SetScore(subjectIndex, otherSubjectIndex, scorer, field);
+            return indexScore;
+        }
+
+        private void SetScore(SubjectIndex subjectIndex, SubjectIndex otherSubjectIndex, IJaroWinklerScorer scorer,
+            SubjectField field)
         {
             if (field == SubjectField.PKV)
-            {
                 Score = scorer.Generate(subjectIndex.sxdmPKValueDoB, otherSubjectIndex.sxdmPKValueDoB);
-            }
+        }
 
+        public override string ToString()
+        {
+            return $"{ScanLevel} {Field} {Score}";
         }
     }
 }

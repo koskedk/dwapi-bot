@@ -32,24 +32,58 @@ namespace Dwapi.Bot.Infrastructure.Data
             return 0;
         }
 
-        public async Task<int> GetRecordCount()
+        public async Task<IEnumerable<SubjectIndex>> GetAllSubjects(int page = 1, int pageSize = 500)
         {
-            var count = await GetAll<SubjectIndex, Guid>()
-                .Select(x => x.Id)
-                .CountAsync();
-            return count;
+            page = page < 0 ? 1 : page;
+            pageSize = pageSize < 0 ? 1 : pageSize;
+
+            var querry = Context.Set<SubjectIndex>().AsNoTracking()
+                .Include(x => x.IndexScores)
+                .Include(x => x.IndexStages)
+                .OrderBy(x => x.RowId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            return await querry.ToListAsync();
         }
 
-        public Task<List<SubjectIndex>> Read(int page, int pageSize, int? siteCode)
+        public  Task<int> GetRecordCount()
         {
-            if (siteCode.HasValue)
-                return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId),
-                        x => x.SiteCode == siteCode.Value)
-                    .ToListAsync();
+            return GetCount<SubjectIndex, Guid>();
+        }
 
+        public Task<int> GetRecordCount(ScanLevel level, string code)
+        {
+            if (level == ScanLevel.Site)
+            {
+                var isSiteCode = Int32.TryParse(code, out var siteCode);
+
+                if (isSiteCode)
+                    return GetCount<SubjectIndex, Guid>(x=>x.SiteCode==siteCode);
+            }
+
+            return GetCount<SubjectIndex, Guid>();
+        }
+
+        public Task<List<SubjectIndex>> Read(int page, int pageSize)
+        {
             return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId))
                 .ToListAsync();
+        }
 
+        public Task<List<SubjectIndex>> Read(int page, int pageSize, ScanLevel level, string code)
+        {
+            if (level == ScanLevel.Site)
+            {
+                var isSiteCode = Int32.TryParse(code, out var siteCode);
+
+                if (isSiteCode)
+                    return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId),
+                            x => x.SiteCode == siteCode)
+                        .ToListAsync();
+            }
+
+            return Read(page, pageSize);
         }
 
         public Task<int> GetBlockRecordCount(SubjectIndex subject, ScanLevel level)

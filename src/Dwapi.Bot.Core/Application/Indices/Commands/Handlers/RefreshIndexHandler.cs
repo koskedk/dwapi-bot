@@ -31,6 +31,12 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
             Log.Debug("refreshing patient index...");
             try
             {
+                // Clear
+
+                Log.Debug("clearing patient index...");
+                await _repository.Clear();
+
+                Log.Debug("loading patient index...");
                 int page = 1;
                 var totalRecords = await _reader.GetRecordCount();
 
@@ -45,9 +51,9 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
 
                     var pis= Mapper.Map<List<SubjectIndex>>(mpis);
 
-                    _repository.CreateOrUpdate(pis);
+                    await _repository.CreateOrUpdate(pis);
 
-                    await _mediator.Publish(new IndexRefreshed(pis.Count, request.BatchSize));
+                    await _mediator.Publish(new IndexRefreshed(pis.Count, totalRecords));
 
                     page++;
                 }
