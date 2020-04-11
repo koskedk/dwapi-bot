@@ -82,7 +82,7 @@ namespace Dwapi.Bot
                 .UseStaticFiles()
                 .UseWebSockets();
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseDefaultFiles();
             app.UseRouting();
 

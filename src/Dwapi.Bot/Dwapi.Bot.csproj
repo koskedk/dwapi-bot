@@ -27,4 +27,10 @@
       <Folder Include="logs" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="clientsrc\package.json" />
+      <_ContentIncludedByDefault Remove="clientsrc\public\manifest.json" />
+      <_ContentIncludedByDefault Remove="clientsrc\tsconfig.json" />
+    </ItemGroup>
+
 </Project>
