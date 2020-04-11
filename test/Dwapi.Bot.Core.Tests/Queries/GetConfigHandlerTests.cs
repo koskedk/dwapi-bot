@@ -1,6 +1,4 @@
 using Dwapi.Bot.Core.Application.Configs.Queries;
-using Dwapi.Bot.Core.Application.Indices.Commands;
-using Dwapi.Bot.Infrastructure;
 using MediatR;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
