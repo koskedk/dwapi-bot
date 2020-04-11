@@ -28,8 +28,11 @@ namespace Dwapi.Bot.Core.Domain.Configs
         private bool GenerateStatus(double score)
         {
             var s = (decimal) score;
-            
-            if (s >= (decimal) MinThreshold.Value && (decimal) score < (decimal) MaxThreshold.Value)
+
+            if (
+                MatchStatus != MatchStatus.None &&
+                s >= (decimal) MinThreshold.Value &&
+                (decimal) score < (decimal) MaxThreshold.Value)
                 return true;
 
             return false;
@@ -38,7 +41,7 @@ namespace Dwapi.Bot.Core.Domain.Configs
 
         public static MatchStatus GenerateStatus(List<MatchConfig> configs,double score)
         {
-            var config = configs.Where(x => x.GenerateStatus(score));
+            var config = configs.Where(x => x.GenerateStatus(score)).ToList();
             return config.First().MatchStatus;
         }
     }

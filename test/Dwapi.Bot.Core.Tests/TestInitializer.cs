@@ -7,6 +7,7 @@ using Dapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
@@ -72,6 +73,7 @@ namespace Dwapi.Bot.Core.Tests
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
+                .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
                 .AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
 
             Services = services;

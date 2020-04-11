@@ -54,7 +54,7 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public override string ToString()
         {
             var code = string.IsNullOrWhiteSpace(ScanLevelCode) ? "" : $"[{ScanLevelCode}]";
-            return $"{ScanLevel} {code} {Field} {Score} [${Status}]";
+            return $"{ScanLevel} {code} {Field} {Score} [{Status}]";
         }
     }
 }

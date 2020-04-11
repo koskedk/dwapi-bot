@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using Dwapi.Bot.Core.Domain.Configs;
+using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.SharedKernel.Enums;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Serilog;
 
@@ -10,18 +14,16 @@ namespace Dwapi.Bot.Core.Tests.Domain.Configs
     public class MatchConfigTests
     {
         private List<MatchConfig> _matchConfigs;
-        [SetUp]
-        public void Setup()
+
+        [OneTimeSetUp]
+        public void Init()
         {
-            _matchConfigs=new List<MatchConfig>
-            {
-                new MatchConfig(MatchStatus.Match,1,1.1,$"{MatchStatus.Match}"),
-                new MatchConfig(MatchStatus.Possible,.96,1,$"{MatchStatus.Possible}"),
-                new MatchConfig(MatchStatus.NonMatch,0,.96,$"{MatchStatus.NonMatch}")
-            };
+            TestInitializer.ClearDb();
+            _matchConfigs = TestInitializer.ServiceProvider.GetService<BotContext>().MatchConfigs.AsNoTracking().ToList();
         }
 
         [TestCase(1,MatchStatus.Match)]
+        [TestCase(.98,MatchStatus.Possible)]
         [TestCase(.96,MatchStatus.Possible)]
         [TestCase(.95,MatchStatus.NonMatch)]
         [TestCase(.86,MatchStatus.NonMatch)]
