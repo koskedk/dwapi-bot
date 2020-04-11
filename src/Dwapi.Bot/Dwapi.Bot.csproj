@@ -21,4 +21,8 @@
       <ProjectReference Include="..\Dwapi.Bot.Infrastructure\Dwapi.Bot.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="logs" />
+    </ItemGroup>
+
 </Project>
