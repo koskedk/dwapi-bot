@@ -33,7 +33,7 @@ namespace Dwapi.Bot.Core.Application.Configs.Queries.Handlers
             catch (Exception e)
             {
                 Log.Error(e,$"{nameof(GetConfigHandler)} error");
-                return Task.FromResult(Result.Fail<IEnumerable<MatchConfig>>(e.Message));
+                return Task.FromResult(Result.Failure<IEnumerable<MatchConfig>>(e.Message));
             }
         }
     }

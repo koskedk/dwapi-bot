@@ -108,7 +108,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             catch (Exception e)
             {
                 Log.Error(e, $"{nameof(ScanSubjectHandler)} Error");
-                return Result.Fail(e.Message);
+                return Result.Failure(e.Message);
             }
         }
 

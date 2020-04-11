@@ -62,7 +62,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
             catch (Exception e)
             {
                 Log.Error(e, $"{nameof(RefreshIndexHandler)} Error");
-                return Result.Fail(e.Message);
+                return Result.Failure(e.Message);
             }
         }
     }
