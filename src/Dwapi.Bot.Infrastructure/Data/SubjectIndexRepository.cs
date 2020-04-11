@@ -42,18 +42,14 @@ namespace Dwapi.Bot.Infrastructure.Data
 
         public Task<List<SubjectIndex>> Read(int page, int pageSize, int? siteCode)
         {
-            page = page < 0 ? 1 : page;
-            pageSize = pageSize < 0 ? 1 : pageSize;
-
-            var query = GetAll<SubjectIndex, Guid>();
-
             if (siteCode.HasValue)
-                query = query.Where(x => x.SiteCode == siteCode.Value);
+                return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId),
+                        x => x.SiteCode == siteCode.Value)
+                    .ToListAsync();
 
-            return query
-                .OrderBy(x => x.RowId)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize).ToListAsync();
+            return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId))
+                .ToListAsync();
+
         }
 
         public Task<int> GetBlockRecordCount(SubjectIndex subject, ScanLevel level)
@@ -70,20 +66,17 @@ namespace Dwapi.Bot.Infrastructure.Data
 
         public Task<List<SubjectIndex>> ReadBlock(int page, int pageSize, SubjectIndex subject, ScanLevel level)
         {
-            page = page < 0 ? 1 : page;
-            pageSize = pageSize < 0 ? 1 : pageSize;
-
-            var query = GetAll<SubjectIndex, Guid>(x =>
-                x.Gender == subject.Gender &&
-                x.DOB.Value.Year == subject.DOB.Value.Year);
-
             if (level == ScanLevel.Site)
-                query = query.Where(x => x.SiteCode == subject.SiteCode);
+                return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId), x =>
+                        x.SiteCode == subject.SiteCode &&
+                        x.Gender == subject.Gender &&
+                        x.DOB.Value.Year == subject.DOB.Value.Year)
+                    .ToListAsync();
 
-            return query
-                .OrderBy(x => x.RowId)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize).ToListAsync();
+            return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId), x =>
+                    x.Gender == subject.Gender &&
+                    x.DOB.Value.Year == subject.DOB.Value.Year)
+                .ToListAsync();
         }
 
         public async Task Clear()
@@ -100,12 +93,12 @@ namespace Dwapi.Bot.Infrastructure.Data
             return CreateOrUpdateAsync<SubjectIndex, Guid>(indices);
         }
 
-        public Task CreateOrUpdate(IEnumerable<SubjectIndexScore> scores)
+        public Task CreateOrUpdateScores(IEnumerable<SubjectIndexScore> scores)
         {
             return CreateOrUpdateAsync<SubjectIndexScore, Guid>(scores);
         }
 
-        public Task CreateOrUpdate(IEnumerable<SubjectIndexStage> stages)
+        public Task CreateOrUpdateStages(IEnumerable<SubjectIndexStage> stages)
         {
             return CreateOrUpdateAsync<SubjectIndexStage, Guid>(stages);
         }

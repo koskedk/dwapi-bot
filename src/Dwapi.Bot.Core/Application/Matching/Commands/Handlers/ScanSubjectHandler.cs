@@ -6,6 +6,7 @@ using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
 using Dwapi.Bot.Core.Application.Matching.Events;
 using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
 
@@ -31,7 +32,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             {
                 int page = 1;
                 var totalRecords = await _repository.GetRecordCount();
-                var pageCount = _repository.PageCount(request.Size, totalRecords);
+                var pageCount = Custom.PageCount(request.Size, totalRecords);
 
                 while (page <= pageCount)
                 {
@@ -46,7 +47,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
 
                         int blockPage = 1;
                         var totalBlockRecords = await _repository.GetBlockRecordCount(subject, request.Level);
-                        var blockPageCount = _repository.PageCount(request.BlockSize, totalBlockRecords);
+                        var blockPageCount = Custom.PageCount(request.BlockSize, totalBlockRecords);
                         while (blockPage <= blockPageCount)
                         {
                             // SCORE

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Dapper;
@@ -42,6 +43,32 @@ namespace Dwapi.Bot.Infrastructure.Data
         {
             return GetAll<TC, TCId>().Where(predicate);
         }
+
+       public IQueryable<TC> GetAllPaged<TC, TCId>(int page, int pageSize,string orderBy) where TC : Entity<TCId>
+       {
+           page = page < 0 ? 1 : page;
+           pageSize = pageSize < 0 ? 1 : pageSize;
+
+           var query = GetAll<TC, TCId>();
+
+           return query
+               .OrderBy(orderBy)
+               .Skip((page - 1) * pageSize)
+               .Take(pageSize);
+       }
+
+       public IQueryable<TC> GetAllPaged<TC, TCId>(int page, int pageSize, string orderBy, Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>
+       {
+           page = page < 0 ? 1 : page;
+           pageSize = pageSize < 0 ? 1 : pageSize;
+
+           var query = GetAll<TC, TCId>().Where(predicate);
+
+           return query
+               .OrderBy(orderBy)
+               .Skip((page - 1) * pageSize)
+               .Take(pageSize);
+       }
 
        public virtual async Task<bool> ExistsAsync<TC, TCId>(TC entity) where TC : Entity<TCId>
        {

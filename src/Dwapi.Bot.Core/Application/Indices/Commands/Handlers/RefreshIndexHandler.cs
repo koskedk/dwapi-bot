@@ -7,6 +7,7 @@ using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
 
@@ -36,7 +37,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
                 if(totalRecords==0)
                     return Result.Ok();
 
-                var pageCount = _reader.PageCount(request.BatchSize, totalRecords);
+                var pageCount = Custom.PageCount(request.BatchSize, totalRecords);
 
                 while (page <= pageCount)
                 {

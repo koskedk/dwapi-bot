@@ -22,21 +22,6 @@ namespace Dwapi.Bot.Infrastructure.Data
             _sourceConfiguration = new SourceConfiguration();
         }
 
-        public int PageCount(int batchSize, long totalRecords)
-        {
-            if (totalRecords > 0)
-            {
-                if (totalRecords < batchSize)
-                {
-                    return 1;
-                }
-
-                return (int) Math.Ceiling(totalRecords / (double) batchSize);
-            }
-
-            return 0;
-        }
-
         public async Task<int> GetRecordCount()
         {
             int count = 0;
