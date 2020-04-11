@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
@@ -13,12 +14,14 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
     public class SubjectIndexRepositoryTests
     {
         private ISubjectIndexRepository _repository;
+        private List<SubjectIndex> _subjectIndices;
 
         [OneTimeSetUp]
         public void Init()
         {
             TestInitializer.ClearDb();
-            TestInitializer.SeedData(TestData.GenerateSubjects(true));
+            _subjectIndices = TestData.GenerateSubjects(true);
+            TestInitializer.SeedData(_subjectIndices);
         }
 
         [SetUp]
@@ -86,7 +89,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             var subject = TestData.GenerateSubject();
 
             var data = _repository.ReadBlock(1,5,subject,ScanLevel.Site).Result;
-            Assert.True(data.Count==2);
+            Assert.True(data.Count>0);
         }
 
         [Test, Order(1)]
@@ -106,7 +109,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         [Test,Order(1)]
         public void should_Save_Scores()
         {
-            var scores = TestData.GenerateSubjectScores();
+            var scores = TestData.GenerateSubjectScores(_subjectIndices.First().Id);
             var Ids = scores.Select(x => x.Id).ToArray();
             _repository.CreateOrUpdateScores(scores);
 
@@ -120,7 +123,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         [Test,Order(1)]
         public void should_Save_Stages()
         {
-            var stages = TestData.GenerateSubjectStages();
+            var stages = TestData.GenerateSubjectStages(_subjectIndices.First().Id);
             var Ids = stages.Select(x => x.Id).ToArray();
             _repository.CreateOrUpdateStages(stages);
 
