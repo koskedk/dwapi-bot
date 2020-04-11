@@ -12,7 +12,11 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
         public static List<SubjectIndex> GenerateSubjects(bool simulate=false,int count = 5)
         {
           if (simulate)
-            return JsonConvert.DeserializeObject<List<SubjectIndex>>(SubjectsJson());
+          {
+            var subjects = JsonConvert.DeserializeObject<List<SubjectIndex>>(SubjectsJson());
+            subjects.ForEach(x=>x.AssignId());
+            return subjects;
+          }
 
           return Builder<SubjectIndex>.CreateListOfSize(count)
                 .Build()
@@ -27,30 +31,28 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
             .With(x => x.Gender = "Female")
             .With(x => x.DOB = new DateTime(1996, 1, 1))
             .With(x => x.SiteCode = 13165)
-            .With(x => x.FacilityName = "SIAYA COUNTY REFERRAL HOSPITAL")
+            .With(x => x.FacilityName = "RIRUTA HC")
             .Build();
 
           return subject;
         }
 
-        public static List<SubjectIndexScore> GenerateSubjectScores(int count = 2)
+        public static List<SubjectIndexScore> GenerateSubjectScores(Guid sid, int count = 2)
         {
-          var subject = JsonConvert.DeserializeObject<List<SubjectIndex>>(SubjectsJson()).First();
 
           return Builder<SubjectIndexScore>.CreateListOfSize(count)
             .All()
-            .With(x=>x.SubjectIndexId=subject.Id)
+            .With(x=>x.SubjectIndexId=sid)
             .Build()
             .ToList();
         }
 
-        public static List<SubjectIndexStage> GenerateSubjectStages(int count = 2)
+        public static List<SubjectIndexStage> GenerateSubjectStages(Guid sid,int count = 2)
         {
-          var subject = JsonConvert.DeserializeObject<List<SubjectIndex>>(SubjectsJson()).First();
 
           return Builder<SubjectIndexStage>.CreateListOfSize(count)
             .All()
-            .With(x=>x.SubjectIndexId=subject.Id)
+            .With(x=>x.SubjectIndexId=sid)
             .Build()
             .ToList();
         }
