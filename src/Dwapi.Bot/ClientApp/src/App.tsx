@@ -8,6 +8,7 @@ function App() {
       <header>
         DWAPI BOT
       </header>
+
       <AppConfig/>
     </div>
   );
