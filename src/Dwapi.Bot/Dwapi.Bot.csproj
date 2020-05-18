@@ -30,10 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="logs\wwwroot\index.html">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
+      <Folder Include="logs" />
     </ItemGroup>
 
 </Project>

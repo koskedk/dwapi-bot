@@ -47,6 +47,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands.Handlers
 
                 while (page <= pageCount)
                 {
+                    Log.Debug($"Reading {page} of {pageCount}...");
                     var mpis = await _reader.Read(page, request.BatchSize);
 
                     var pis= Mapper.Map<List<SubjectIndex>>(mpis);

@@ -29,14 +29,14 @@ namespace Dwapi.Bot.Controllers
         }
 
         [HttpPost("Refresh")]
-        public async Task<ActionResult> Get(RefreshIndex command)
+        public async Task<ActionResult> Post([FromBody] RefreshIndexDto command)
         {
             if (command.BatchSize <= 0)
                 return BadRequest();
 
             try
             {
-                var results = await _mediator.Send(command);
+                var results = await _mediator.Send(command.GenerateCommand());
 
                 if (results.IsSuccess)
                     return Ok("Refreshing...");
@@ -52,7 +52,7 @@ namespace Dwapi.Bot.Controllers
         }
 
         [HttpPost("Scan")]
-        public async Task<ActionResult> Get(ScanDto command)
+        public async Task<ActionResult> Post([FromBody] ScanDto command)
         {
             var results = new List<Result>();
             var siteCodes = new List<int>();

@@ -56,7 +56,7 @@ namespace Dwapi.Bot
 
             services.AddTransient<IJaroWinklerScorer, JaroWinklerScorer>();
             services.AddTransient<IMasterPatientIndexReader>(s =>
-                new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)));
+                new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
