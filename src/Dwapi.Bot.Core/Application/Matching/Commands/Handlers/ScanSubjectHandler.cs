@@ -54,6 +54,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
 
                 while (page <= pageCount)
                 {
+                    Log.Debug($"Scanning page {page}/{pageCount}...");
                     // Subjects
                     List<SubjectIndex> subjects;
 
@@ -66,8 +67,12 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
                         subjects = await _repository.Read(page, request.Size);
                     }
 
+                    int subIndex = 0;
+                    var subjectsCount = subjects.Count;
                     foreach (var subject in subjects)
                     {
+                        subIndex++;
+                        Log.Debug($"Scanning page {page}/{pageCount} | Subject {subIndex} of {subjectsCount}...");
                         var scores = new List<SubjectIndexScore>();
                         // Block
 
@@ -108,7 +113,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             catch (Exception e)
             {
                 Log.Error(e, $"{nameof(ScanSubjectHandler)} Error");
-                return Result.Fail(e.Message);
+                return Result.Failure(e.Message);
             }
         }
 

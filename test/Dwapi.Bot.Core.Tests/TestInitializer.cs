@@ -83,7 +83,7 @@ namespace Dwapi.Bot.Core.Tests
 
             Mapper.Initialize(cfg =>
             {
-                cfg.AddProfile<PatientIndexProfile>();
+                cfg.AddProfile<SubjectIndexProfile>();
             });
         }
 

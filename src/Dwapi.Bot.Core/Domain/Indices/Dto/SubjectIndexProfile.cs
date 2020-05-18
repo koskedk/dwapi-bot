@@ -3,9 +3,9 @@ using Dwapi.Bot.Core.Domain.Readers;
 
 namespace Dwapi.Bot.Core.Domain.Indices.Dto
 {
-    public class PatientIndexProfile:Profile
+    public class SubjectIndexProfile:Profile
     {
-        public PatientIndexProfile()
+        public SubjectIndexProfile()
         {
             CreateMap<MasterPatientIndex, SubjectIndex>()
                 .ForMember(x=>x.Id,o=>o.Ignore())

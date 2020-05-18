@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Interfaces.Data;
 
@@ -19,5 +20,6 @@ namespace Dwapi.Bot.Core.Domain.Indices
         Task CreateOrUpdate(IEnumerable<SubjectIndex> indices);
         Task CreateOrUpdateScores(IEnumerable<SubjectIndexScore> scores);
         Task CreateOrUpdateStages(IEnumerable<SubjectIndexStage> stages);
+        Task<IEnumerable<SubjectSiteDto>> GetSubjectSiteDtos();
     }
 }

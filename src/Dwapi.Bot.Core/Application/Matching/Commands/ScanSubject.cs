@@ -12,6 +12,8 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
         public int BlockSize { get; }
         public SubjectField Field { get; }
 
+
+
         public ScanSubject(SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
         {
             Level = ScanLevel.InterSite;
