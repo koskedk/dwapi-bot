@@ -134,6 +134,15 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True(data == 2);
         }
 
+        [Test,Order(1)]
+        public void should_Get_SubjectSites()
+        {
+            var sites = _repository.GetSubjectSiteDtos().Result.ToList();
+            Assert.True((sites.Count > 0));
+            foreach (var site in sites)
+                Log.Debug($"{site}");
+        }
+
         [Test,Order(99)]
         public void should_Clear()
         {

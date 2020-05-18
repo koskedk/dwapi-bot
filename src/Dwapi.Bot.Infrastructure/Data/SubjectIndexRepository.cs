@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -139,6 +140,14 @@ namespace Dwapi.Bot.Infrastructure.Data
         public Task CreateOrUpdateStages(IEnumerable<SubjectIndexStage> stages)
         {
             return CreateOrUpdateAsync<SubjectIndexStage, Guid>(stages);
+        }
+
+        public async Task<IEnumerable<SubjectSiteDto>> GetSubjectSiteDtos()
+        {
+            var sql = $@"SELECT DISTINCT {nameof(SubjectSiteDto.SiteCode)},{nameof(SubjectSiteDto.FacilityName)} 
+                                FROM {nameof(BotContext.SubjectIndices)}";
+
+            return await  GetConnection().QueryAsync<SubjectSiteDto>(sql);
         }
     }
 }
