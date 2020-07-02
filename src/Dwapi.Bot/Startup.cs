@@ -59,6 +59,7 @@ namespace Dwapi.Bot
                 new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
+            services.AddScoped<IBlockStageRepository, BlockStageRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
 
 

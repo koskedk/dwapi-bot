@@ -76,6 +76,7 @@ namespace Dwapi.Bot.Core.Tests
                     new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
                 .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
+                .AddTransient<IBlockStageRepository, BlockStageRepository>()
                 .AddMediatR(typeof(RefreshIndex).Assembly, typeof(TestEventOccuredHandler).Assembly);
 
             Services = services;

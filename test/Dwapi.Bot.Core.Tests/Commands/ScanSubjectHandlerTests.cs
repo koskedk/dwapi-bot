@@ -40,7 +40,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_PKV_Site()
         {
-            var command = new ScanSubject();
+            var command = new ScanSubject(ScanLevel.Site);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();
@@ -53,13 +53,35 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_Serial_Site()
         {
-            var command = new ScanSubject(SubjectField.Serial);
+            var command = new ScanSubject(ScanLevel.Site, SubjectField.Serial);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();
             var scores = indices.SelectMany(x => x.IndexScores).ToList();
             Assert.True(scores.Any());
             PrintScores(13165);
+        }
+
+        [Test]
+        public void should_Scan_PKV_Inter_Site()
+        {
+            var command = new ScanSubject(ScanLevel.InterSite);
+            var result = _mediator.Send(command).Result;
+            Assert.True(result.IsSuccess);
+            var scores = Indices().SelectMany(x => x.IndexScores).ToList();
+            Assert.True(scores.Any());
+            PrintScores();
+        }
+
+        [Test]
+        public void should_Scan_Serial_Inter_Site()
+        {
+            var command = new ScanSubject(ScanLevel.InterSite,SubjectField.Serial);
+            var result = _mediator.Send(command).Result;
+            Assert.True(result.IsSuccess);
+            var scores = Indices().SelectMany(x => x.IndexScores).ToList();
+            Assert.True(scores.Any());
+            PrintScores();
         }
 
         private List<SubjectIndex> Indices()

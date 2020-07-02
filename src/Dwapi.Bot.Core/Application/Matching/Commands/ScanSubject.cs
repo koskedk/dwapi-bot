@@ -17,11 +17,13 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
     public class ScanSubject : IRequest<Result>
     {
+        public ScanLevel Level { get; }
         public int Size { get; }
         public int BlockSize { get; }
         public SubjectField Field { get; }
 
-        public ScanSubject(SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
+        public ScanSubject(ScanLevel level = ScanLevel.Site, SubjectField field = SubjectField.PKV, int size = 500,
+            int blockSize = 500)
         {
             Size = size;
             BlockSize = blockSize;
@@ -47,13 +49,16 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
         public async Task<Result> Handle(ScanSubject request, CancellationToken cancellationToken)
         {
-            Log.Debug($"scanning Within Sites ...");
+            Log.Debug($"scanning Within {request.Level} ...");
 
             var configs = _configRepository.GetConfigs().ToList();
 
             try
             {
-                var blocks = await _repository.GetSiteBlocks();
+              var blocks = request.Level == ScanLevel.Site
+                    ? await _repository.GetSiteBlocks()
+                    : await _repository.GetInterSiteBlocks();
+
                 var siteBlocks = blocks.ToList();
 
                 int blockCount = 1;
@@ -81,17 +86,17 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
         private async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
             List<MatchConfig> configs, CancellationToken cancellationToken)
         {
-            Log.Debug($"Scanning Block {blockCount}/{siteBlocksCount}...");
+            Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");
 
             int page = 1;
-            var totalRecords = await _repository.GetRecordCount(ScanLevel.Site, siteBlock);
+            var totalRecords = await _repository.GetRecordCount(request.Level, siteBlock);
 
             var pageCount = Custom.PageCount(request.Size, totalRecords);
 
             while (page <= pageCount)
             {
                 // Subjects
-                var subjectIndices = await _repository.Read(page, request.Size, ScanLevel.Site, siteBlock);
+                var subjectIndices = await _repository.Read(page, request.Size, request.Level, siteBlock);
                 var subjects = subjectIndices.ToList();
                 int subIndex = 0;
                 var subjectsCount = subjects.Count;
@@ -107,7 +112,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
                     foreach (var otherSubject in otherSubjects)
                     {
-                        var score = SubjectIndexScore.GenerateScore(subject, otherSubject, ScanLevel.Site,
+                        var score = SubjectIndexScore.GenerateScore(subject, otherSubject, request.Level,
                             _scorer, request.Field, subject.SiteCode.ToString(), configs);
                         scores.Add(score);
                     }
@@ -124,10 +129,10 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 page++;
             }
 
-            await _mediator.Publish(new BlockScanned(siteBlock, ScanLevel.Site, ScanStatus.Scanned),
+            await _mediator.Publish(new BlockScanned(siteBlock, request.Level, ScanStatus.Scanned),
                 cancellationToken);
 
-            await _mediator.Publish(new BlockUpdated(ScanLevel.Site),
+            await _mediator.Publish(new BlockUpdated(request.Level),
                 cancellationToken);
         }
     }
