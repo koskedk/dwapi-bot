@@ -10,6 +10,7 @@ using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
+using Hangfire;
 using MediatR;
 using Serilog;
 
@@ -55,7 +56,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
             try
             {
-              var blocks = request.Level == ScanLevel.Site
+                var blocks = request.Level == ScanLevel.Site
                     ? await _repository.GetSiteBlocks()
                     : await _repository.GetInterSiteBlocks();
 
@@ -64,15 +65,20 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 int blockCount = 1;
                 Log.Debug($"Scanning blocks {siteBlocks.Count}...");
                 var tasks = new List<Task>();
-                foreach (var siteBlock in siteBlocks)
-                {
-                    var task = CreateTask(request, siteBlock, blockCount, siteBlocks.Count, configs, cancellationToken);
-                    tasks.Add(task);
-                    blockCount++;
-                }
 
-                if (tasks.Any())
-                    await Task.WhenAll(tasks.ToArray());
+                BatchJob.StartNew(x =>
+                {
+                    foreach (var siteBlock in siteBlocks)
+                    {
+                    
+                        x.Enqueue(() => CreateTask(request, siteBlock, blockCount, siteBlocks.Count, configs,
+                            cancellationToken));
+                        blockCount++;
+                    }
+
+                });
+
+
 
                 return Result.Ok();
             }
@@ -83,7 +89,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
             }
         }
 
-        private async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
+        public async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
             List<MatchConfig> configs, CancellationToken cancellationToken)
         {
             // Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");

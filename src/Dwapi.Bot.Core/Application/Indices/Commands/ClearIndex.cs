@@ -1,79 +1,79 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
 using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Application.Common.Events;
 using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
-using Dwapi.Bot.Core.Domain.Readers;
-using Dwapi.Bot.SharedKernel.Enums;
-using Dwapi.Bot.SharedKernel.Utility;
+using Hangfire;
 using MediatR;
 using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Indices.Commands
 {
-    public class ClearIndex : IRequest<Result>
+    public class ClearIndex : IRequest<Result<string>>
     {
     }
 
-    public class ClearIndexHandler : IRequestHandler<ClearIndex, Result>
+    public class ClearIndexHandler : IRequestHandler<ClearIndex, Result<string>>
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
-        private readonly IBlockStageRepository _blockStageRepository;
-        private readonly IMasterPatientIndexReader _reader;
 
-        public ClearIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader, IBlockStageRepository blockStageRepository)
+        public ClearIndexHandler(IMediator mediator, ISubjectIndexRepository repository)
         {
             _mediator = mediator;
             _repository = repository;
-            _reader = reader;
-            _blockStageRepository = blockStageRepository;
         }
 
-        public async Task<Result> Handle(ClearIndex request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Handle(ClearIndex request, CancellationToken cancellationToken)
         {
-            Log.Debug("Clearing patient index...");
+            Log.Debug("Clearing index...");
+
             try
             {
-
-                var sites =await  _repository.GetSubjectSiteDtos();
+                var sites = await _repository.GetSubjectSiteDtos();
                 var subjectSites = sites.ToList();
 
-                await _mediator.Publish(new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),cancellationToken);
+                await _mediator.Publish(
+                    new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),
+                    cancellationToken);
 
-                var tasks=new List<Task>();
 
-                foreach (var site in subjectSites)
+                var jobId = BatchJob.StartNew(x =>
                 {
-                    var task = ClearIndex(site,subjectSites.Count);
-                    tasks.Add(task);
-                }
+                    foreach (var site in subjectSites)
+                    {
+                        x.Enqueue(() => CreateTask(site));
+                    }
+                });
 
-                if (tasks.Any())
-                    await Task.WhenAll(tasks.ToArray());
+                var id = BatchJob.ContinueBatchWith(jobId,
+                    x => { x.Enqueue(() => SendNotification(subjectSites.Count)); });
 
+                Log.Debug($"clearing index scheduled {jobId}");
 
-                Log.Debug("clearing patient index done");
-
-                return Result.Ok();
+                return Result.Ok(id);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(ClearIndexHandler)} Error");
-                return Result.Failure(e.Message);
+                Log.Error(e, $"{nameof(CreateTask)} Error");
+                return Result.Failure<string>(e.Message);
             }
         }
 
-        private async Task ClearIndex(SubjectSiteDto siteDto,int count)
+        public async Task CreateTask(SubjectSiteDto siteDto)
         {
             await _repository.Clear(siteDto.SiteCode);
-            await _mediator.Publish(new IndexSiteCleared(siteDto,count));
+            await _mediator.Publish(new IndexSiteCleared(siteDto));
+
+        }
+
+        public async Task SendNotification(int count)
+        {
+            await _mediator.Publish(new IndexCleared(count));
         }
     }
 }

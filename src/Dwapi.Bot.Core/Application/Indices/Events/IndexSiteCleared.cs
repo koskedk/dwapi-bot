@@ -12,29 +12,20 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
 {
     public class IndexSiteCleared:INotification
     {
-        public int TotalSites  { get;  }
         public SubjectSiteDto SubjectSite { get;  }
 
-        public IndexSiteCleared(SubjectSiteDto subjectSite, int totalSites)
+        public IndexSiteCleared(SubjectSiteDto subjectSite)
         {
             SubjectSite = subjectSite;
-            TotalSites = totalSites;
         }
     }
-    public class IndexSiteClearedHandler:INotificationHandler<IndexSiteCleared>
+
+    public class IndexSiteClearedEventHandler : INotificationHandler<IndexSiteCleared>
     {
-        private readonly ISubjectIndexRepository _repository;
-
-        public IndexSiteClearedHandler(ISubjectIndexRepository repository, IBlockStageRepository blockStageRepository)
+        public Task Handle(IndexSiteCleared notification, CancellationToken cancellationToken)
         {
-            _repository = repository;
-        }
-
-        public async Task Handle(IndexSiteCleared notification, CancellationToken cancellationToken)
-        {
-            var remainingSites = await _repository.GetSubjectSiteDtos();
-            Log.Debug(
-                $"Clearing {Custom.GetPerc((notification.TotalSites - remainingSites.Count()), notification.TotalSites)}");
+            Log.Debug($"{nameof(IndexSiteCleared)}:{notification.SubjectSite}");
+            return Task.CompletedTask;
         }
     }
 }

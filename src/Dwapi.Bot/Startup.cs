@@ -15,6 +15,9 @@ using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
 using Dwapi.Bot.SharedKernel.Enums;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using Hangfire.SqlServer;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -61,6 +64,28 @@ namespace Dwapi.Bot
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddScoped<IBlockStageRepository, BlockStageRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
+            services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(Configuration.GetConnectionString("jobzConnection"), new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    UsePageLocksOnDequeue = true,
+                    DisableGlobalLocks = true
+                }));
+
+            //add hangfire server 1
+            services.AddHangfireServer(x => x.ServerName = "Server 1");
+
+            //add hangfire server 2
+            services.AddHangfireServer(x => x.ServerName = "Server 2");
+
+            //add hangfire server 3
+            services.AddHangfireServer(x => x.ServerName = "Server 3");
 
 
         }
@@ -87,6 +112,9 @@ namespace Dwapi.Bot
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseRouting();
+
+            app.UseHangfireDashboard("/hangfire");
+            GlobalConfiguration.Configuration.UseBatches();
 
             app.UseEndpoints(endpoints =>
             {

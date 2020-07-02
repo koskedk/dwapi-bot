@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoMapper;
 using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Application.Common.Events;
 using Dwapi.Bot.Core.Application.Indices.Events;
@@ -11,7 +10,6 @@ using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.SharedKernel.Enums;
-using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
 

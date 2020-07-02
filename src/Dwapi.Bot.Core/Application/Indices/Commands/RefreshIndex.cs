@@ -11,6 +11,7 @@ using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.SharedKernel.Utility;
+using Hangfire;
 using MediatR;
 using Serilog;
 
@@ -42,7 +43,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
         public async Task<Result> Handle(RefreshIndex request, CancellationToken cancellationToken)
         {
-            Log.Debug("refreshing patient index...");
+            Log.Debug("refreshing index...");
             try
             {
                 Log.Debug("getting sites...");
@@ -50,23 +51,25 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 var sites = await _reader.GetMpiSites();
                 var mpiSites = sites.ToList();
 
-                await _mediator.Publish(
-                    new EventOccured("GetMpiSites", $"MPI Sites Found", Convert.ToInt64(mpiSites.Count)),
-                    cancellationToken);
+                Log.Debug($"found {mpiSites.Count} site(s)");
 
                 int siteCount = 1;
                 var tasks = new List<Task>();
 
-                foreach (var mpiSite in mpiSites)
+                var jobId = BatchJob.StartNew(x =>
                 {
+                    foreach (var mpiSite in mpiSites)
+                    {
+                        var count = siteCount;
+                        x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
+                        siteCount++;
+                    }
+                });
 
-                    var task = CreateTask(request, mpiSite, siteCount, mpiSites.Count, cancellationToken);
-                    tasks.Add(task);
-                    siteCount++;
-                }
+                var id = BatchJob.ContinueBatchWith(jobId,
+                    x => { x.Enqueue(() => SendNotification(mpiSites.Count)); });
 
-                if (tasks.Any())
-                    await Task.WhenAll(tasks.ToArray());
+                Log.Debug($"refreshing scheduled [{jobId}]");
 
                 return Result.Ok();
             }
@@ -77,44 +80,37 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             }
         }
 
-        private async Task CreateTask(RefreshIndex request, SubjectSiteDto mpiSite, int siteCount, int totalSites,
+        public async Task CreateTask(RefreshIndex request, SubjectSiteDto mpiSite, int siteCount, int totalSites,
             CancellationToken cancellationToken)
         {
-            await _mediator.Publish(
-                new EventOccured("RefreshSites", $"Refreshing {mpiSite.FacilityName}", siteCount, totalSites),
-                cancellationToken);
 
             var totalRecords = await _reader.GetRecordCount(mpiSite.SiteCode);
-
             if (totalRecords == 0)
                 return;
 
             var pageCount = Custom.PageCount(request.BatchSize, totalRecords);
             int page = 1;
+            int recordCount = 0;
+
             while (page <= pageCount)
             {
-                Log.Debug($"Reading {page} of {pageCount}...");
+                var masterPatientIndices = await _reader.Read(page, request.BatchSize, mpiSite.SiteCode);
 
-
-                var mpis = await _reader.Read(page, request.BatchSize, mpiSite.SiteCode);
-
-                var pis = Mapper.Map<List<SubjectIndex>>(mpis);
-                pis.Where(x=>x.IsInvalidSex())
+                var subjectIndices = Mapper.Map<List<SubjectIndex>>(masterPatientIndices);
+                subjectIndices.Where(x=>x.IsInvalidSex())
                     .ToList()
                     .ForEach(p=>p.cleanUpSex());
-
-                await _repository.Merge<SubjectIndex,Guid>(pis);
-
-                await _mediator.Publish(
-                    new IndexRefreshed(pis.Count, totalRecords)
-                        {Site = mpiSite, SiteCount = siteCount, TotalSiteCount = totalSites}, cancellationToken);
-
+                recordCount += subjectIndices.Count;
+                await _repository.Merge<SubjectIndex,Guid>(subjectIndices);
                 page++;
-
-                await _mediator.Publish(
-                    new EventOccured("RefreshMpi", $"Refreshing {mpiSite.FacilityName} MPI", pis.Count, totalRecords),
-                    cancellationToken);
             }
+
+            await _mediator.Publish(new IndexSiteRefreshed(mpiSite,recordCount));
+        }
+
+        public async Task SendNotification(int count)
+        {
+            await _mediator.Publish(new IndexRefreshed(count));
         }
     }
 }

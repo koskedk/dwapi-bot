@@ -1,24 +1,26 @@
-using Dwapi.Bot.Core.Domain.Indices.Dto;
+using System.Threading;
+using System.Threading.Tasks;
 using MediatR;
+using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Indices.Events
 {
     public class IndexRefreshed:INotification
     {
-        public int Count { get; set; }
+        public int Count { get; }
 
-        public int TotalCount { get; set; }
-
-        public SubjectSiteDto Site  { get; set; }
-
-        public int SiteCount { get; set; }
-
-        public int TotalSiteCount { get; set; }
-
-        public IndexRefreshed(int count, int totalCount)
+        public IndexRefreshed(int count)
         {
             Count = count;
-            TotalCount = totalCount;
+        }
+    }
+
+    public class IndexRefreshedEventHandler : INotificationHandler<IndexRefreshed>
+    {
+        public Task Handle(IndexRefreshed notification, CancellationToken cancellationToken)
+        {
+            Log.Debug($"{nameof(IndexRefreshed)}:{notification.Count} site(s)");
+            return Task.CompletedTask;
         }
     }
 }
