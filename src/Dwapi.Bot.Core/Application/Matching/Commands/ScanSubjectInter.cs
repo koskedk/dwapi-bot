@@ -13,16 +13,42 @@ using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
 
-namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
+namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
-    public class ScanSubjectHandler : IRequestHandler<ScanSubject, Result>
+    public class ScanSubjectInter : IRequest<Result>
+    {
+        public ScanLevel Level { get; }
+        public string LevelCode { get; }
+        public int Size { get; }
+        public int BlockSize { get; }
+        public SubjectField Field { get; }
+
+
+
+        public ScanSubjectInter(SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
+        {
+            Level = ScanLevel.InterSite;
+            Size = size;
+            BlockSize = blockSize;
+            Field = field;
+        }
+
+        public ScanSubjectInter(string levelCode, SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
+        :this(field, size, blockSize)
+        {
+            Level = ScanLevel.Site;
+            LevelCode = levelCode;
+        }
+    }
+
+     public class ScanSubjectInterHandler : IRequestHandler<ScanSubjectInter, Result>
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
         private readonly IMatchConfigRepository _configRepository;
         private readonly IJaroWinklerScorer _scorer;
 
-        public ScanSubjectHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer, IMatchConfigRepository configRepository)
+        public ScanSubjectInterHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer, IMatchConfigRepository configRepository)
         {
             _mediator = mediator;
             _repository = repository;
@@ -30,7 +56,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             _configRepository = configRepository;
         }
 
-        public async Task<Result> Handle(ScanSubject request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(ScanSubjectInter request, CancellationToken cancellationToken)
         {
             Log.Debug($"scanning {request.Level}:{request.LevelCode} ...");
 
@@ -112,7 +138,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands.Handlers
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(ScanSubjectHandler)} Error");
+                Log.Error(e, $"{nameof(ScanSubjectInterHandler)} Error");
                 return Result.Failure(e.Message);
             }
         }

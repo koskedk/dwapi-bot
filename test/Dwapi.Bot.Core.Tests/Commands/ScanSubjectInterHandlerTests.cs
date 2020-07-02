@@ -7,14 +7,14 @@ using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using NUnit.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 using Serilog;
 
 namespace Dwapi.Bot.Core.Tests.Commands
 {
     [TestFixture]
-    public class ScanSubjectHandlerTests
+    public class ScanSubjectInterHandlerTests
     {
         private IMediator _mediator;
         private BotContext _context;
@@ -25,9 +25,6 @@ namespace Dwapi.Bot.Core.Tests.Commands
             TestInitializer.ClearDb();
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
             var refreshResult=_mediator.Send(new RefreshIndex(100)).Result;
-            var command = new BlockIndex();
-            var result = _mediator.Send(command).Result;
-            Assert.True(result.IsSuccess);
             Assert.True(refreshResult.IsSuccess);
         }
 
@@ -49,6 +46,16 @@ namespace Dwapi.Bot.Core.Tests.Commands
             PrintScores(13165);
         }
 
+        // [Test]
+        // public void should_Scan_PKV_Inter_Site()
+        // {
+        //     var command = new ScanSubject();
+        //     var result = _mediator.Send(command).Result;
+        //     Assert.True(result.IsSuccess);
+        //     var scores = Indices().SelectMany(x => x.IndexScores).ToList();
+        //     Assert.True(scores.Any());
+        //     PrintScores();
+        // }
 
         [Test]
         public void should_Scan_Serial_Site()
@@ -61,6 +68,17 @@ namespace Dwapi.Bot.Core.Tests.Commands
             Assert.True(scores.Any());
             PrintScores(13165);
         }
+
+        // [Test]
+        // public void should_Scan_Serial_Inter_Site()
+        // {
+        //     var command = new ScanSubject(SubjectField.Serial);
+        //     var result = _mediator.Send(command).Result;
+        //     Assert.True(result.IsSuccess);
+        //     var scores = Indices().SelectMany(x => x.IndexScores).ToList();
+        //     Assert.True(scores.Any());
+        //     PrintScores();
+        // }
 
         private List<SubjectIndex> Indices()
         {

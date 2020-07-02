@@ -1,13 +1,15 @@
 using Dwapi.Bot.Core.Application.Indices.Commands;
+using Dwapi.Bot.Core.Tests.TestArtifacts;
 using Dwapi.Bot.Infrastructure;
+using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
-using NUnit.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 
 namespace Dwapi.Bot.Core.Tests.Commands
 {
     [TestFixture]
-    public class RefreshIndexHandlerTests
+    public class BlockIndexHandlerTests
     {
         private IMediator _mediator;
         private BotContext _context;
@@ -16,21 +18,28 @@ namespace Dwapi.Bot.Core.Tests.Commands
         public void Init()
         {
             TestInitializer.ClearDb();
-            _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
-            var command = new ClearIndex();
-            var result = _mediator.Send(command).Result;
+            TestInitializer.SeedData(TestData.GenerateSubjects(true));
         }
         [SetUp]
         public void SetUp()
         {
-
             _context= TestInitializer.ServiceProvider.GetService<BotContext>();
+            _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
         }
 
         [Test]
-        public void should_Refresh()
+        public void should_Block()
         {
-            var command = new RefreshIndex(5);
+            var command = new BlockIndex();
+
+            var result = _mediator.Send(command).Result;
+            Assert.True(result.IsSuccess);
+        }
+
+        [Test]
+        public void should_Block_Inter()
+        {
+            var command = new BlockIndex(ScanLevel.InterSite);
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);

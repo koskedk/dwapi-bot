@@ -137,6 +137,17 @@ namespace Dwapi.Bot.Infrastructure.Data
             return _connection;
         }
 
+        public IDbConnection GetConnectionOnly()
+        {
+            if (Context.Database.IsSqlServer())
+                _connection = new SqlConnection(ConnectionString);
+
+            if (Context.Database.IsSqlite())
+                _connection = new SqliteConnection(ConnectionString);
+
+            return _connection;
+        }
+
         public Task ExecCommand(string sqlCommand)
         {
             return Context.Database.ExecuteSqlRawAsync(sqlCommand);

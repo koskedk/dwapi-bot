@@ -11,6 +11,7 @@ using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.Core.Tests.Notifications;
 using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
@@ -40,7 +41,7 @@ namespace Dwapi.Bot.Core.Tests
         [OneTimeSetUp]
         public void Init()
         {
-            SqlMapper.AddTypeHandler<Guid>(new GuidTypeHandler());
+             SqlMapper.AddTypeHandler<Guid>(new GuidTypeHandler());
             RegisterLicence();
             RemoveTestsFilesDbs();
 
@@ -71,20 +72,18 @@ namespace Dwapi.Bot.Core.Tests
             services
                 .AddTransient<BotContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
-                .AddTransient<IMasterPatientIndexReader>(s=>new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite,mpiConnectionString)))
+                .AddTransient<IMasterPatientIndexReader>(s =>
+                    new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
                 .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
-                .AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
+                .AddMediatR(typeof(RefreshIndex).Assembly, typeof(TestEventOccuredHandler).Assembly);
 
             Services = services;
 
             ServicesOnly = Services;
             ServiceProvider = Services.BuildServiceProvider();
 
-            Mapper.Initialize(cfg =>
-            {
-                cfg.AddProfile<SubjectIndexProfile>();
-            });
+            Mapper.Initialize(cfg => { cfg.AddProfile<SubjectIndexProfile>(); });
         }
 
         public static void ClearDb()
@@ -93,6 +92,7 @@ namespace Dwapi.Bot.Core.Tests
             context.Database.EnsureCreated();
             context.EnsureSeeded();
         }
+
         public static void SeedData(params IEnumerable<object>[] entities)
         {
             var context = ServiceProvider.GetService<BotContext>();
@@ -100,6 +100,7 @@ namespace Dwapi.Bot.Core.Tests
             {
                 context.AddRange(t);
             }
+
             context.SaveChanges();
         }
 
@@ -115,8 +116,8 @@ namespace Dwapi.Bot.Core.Tests
         private void RemoveTestsFilesDbs()
         {
             string[] keyFiles =
-                { "dwapibot.db","mpi.db"};
-            string[] keyDirs = { @"TestArtifacts/Database".ToOsStyle()};
+                {"dwapibot.db", "mpi.db"};
+            string[] keyDirs = {@"TestArtifacts/Database".ToOsStyle()};
 
             foreach (var keyDir in keyDirs)
             {

@@ -23,5 +23,6 @@ namespace Dwapi.Bot.SharedKernel.Interfaces.Data
         Task ExecCommand(string sqlCommand);
         Task SaveAsync();
         IDbConnection GetConnection(bool open = true);
+        IDbConnection GetConnectionOnly();
     }
 }

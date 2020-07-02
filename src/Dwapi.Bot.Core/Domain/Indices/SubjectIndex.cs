@@ -34,6 +34,8 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public string sxdmPKValueDoB { get; set; }
         public Guid? FacilityId { get; set; }
         public int RowId { get; set; }
+        public Guid? SiteBlockId { get; set; }
+        public Guid? InterSiteBlockId { get; set; }
         public ICollection<SubjectIndexScore> IndexScores { get; set; }=new List<SubjectIndexScore>();
         public ICollection<SubjectIndexStage> IndexStages { get; set; }=new List<SubjectIndexStage>();
 

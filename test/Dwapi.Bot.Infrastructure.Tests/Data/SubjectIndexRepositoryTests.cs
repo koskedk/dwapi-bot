@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Infrastructure.Tests.TestArtifacts;
@@ -141,6 +142,50 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((sites.Count > 0));
             foreach (var site in sites)
                 Log.Debug($"{site}");
+        }
+
+        [Test,Order(1)]
+        public void should_Get_SubjectInterSiteBlock()
+        {
+            var sites = _repository.GetSubjectInterSiteBlockDtos().Result.ToList();
+            Assert.True((sites.Count > 0));
+            foreach (var site in sites)
+                Log.Debug($"{site}");
+        }
+
+        [Test,Order(1)]
+        public void should_Get_SubjectSiteBlock()
+        {
+            var sites = _repository.GetSubjectSiteBlockDtos().Result.ToList();
+            Assert.True((sites.Count > 0));
+            foreach (var site in sites)
+                Log.Debug($"{site}");
+        }
+
+        [Test,Order(1)]
+        public void should_Block_Site_Index()
+        {
+            var site = _repository.GetSubjectSiteBlockDtos().Result.ToList().First();
+
+            _repository.BlockSiteSubjects(site).Wait();
+
+            var data = _repository.GetConnection()
+                .Query<SubjectIndex>($"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE SiteBlockId IS NOT NULL");
+
+            Assert.True(data.Any());
+        }
+
+        [Test,Order(1)]
+        public void should_Block_Inter_Site_Index()
+        {
+            var site = _repository.GetSubjectInterSiteBlockDtos().Result.ToList().First();
+
+            _repository.BlockInterSiteSubjects(site).Wait();
+
+            var data = _repository.GetConnection()
+                .Query<SubjectIndex>($"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE InterSiteBlockId IS NOT NULL");
+
+            Assert.True(data.Any());
         }
 
         [Test,Order(99)]
