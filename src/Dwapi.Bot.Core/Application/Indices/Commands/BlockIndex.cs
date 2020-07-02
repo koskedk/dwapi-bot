@@ -10,6 +10,7 @@ using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.SharedKernel.Enums;
+using Hangfire;
 using MediatR;
 using Serilog;
 
@@ -29,15 +30,11 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
-        private readonly IBlockStageRepository _blockStageRepository;
-        private readonly IMasterPatientIndexReader _reader;
 
-        public BlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader, IBlockStageRepository blockStageRepository)
+        public BlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository)
         {
             _mediator = mediator;
             _repository = repository;
-            _reader = reader;
-            _blockStageRepository = blockStageRepository;
         }
 
         public async Task<Result> Handle(BlockIndex request, CancellationToken cancellationToken)
@@ -58,31 +55,25 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 var blockSites = blocks.ToList();
 
-                await _mediator.Publish(new EventOccured("GetBlocks", $"Blocking", Convert.ToInt64(blockSites.Count)),
-                    cancellationToken);
-
-                var tasks = new List<Task>();
-
-                foreach (var site in blockSites)
+               var jobId= BatchJob.StartNew(x =>
                 {
-                    if (request.Level == ScanLevel.Site)
+                    foreach (var site in blockSites)
                     {
-                        var task = BlockSiteIndex(site);
-                        tasks.Add(task);
+                        if (request.Level == ScanLevel.Site)
+                        {
+                            x.Enqueue(() => BlockSiteIndex(site));
+                        }
+                        else
+                        {
+                            x.Enqueue(() => BlockInterSiteIndex(site));
+                        }
                     }
-                    else
-                    {
-                        var task = BlockInterSiteIndex(site);
-                        tasks.Add(task);
-                    }
-                }
+                });
 
-                if (tasks.Any())
-                    await Task.WhenAll(tasks.ToArray());
+               var id = BatchJob.ContinueBatchWith(jobId,
+                   x => { x.Enqueue(() => SendNotification(blockSites.Count)); });
 
-                await _blockStageRepository.InitBlock(request.Level);
-
-                Log.Debug("blocking done");
+               Log.Debug($"blocking index scheduled {jobId}");
 
                 return Result.Ok();
             }
@@ -103,6 +94,11 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
         {
             await _repository.BlockInterSiteSubjects(siteDto);
             await _mediator.Publish(new IndexSiteBlocked(siteDto));
+        }
+
+        public async Task SendNotification(int count)
+        {
+            await _mediator.Publish(new IndexBlocked(count));
         }
     }
 }
