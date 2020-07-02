@@ -17,27 +17,17 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
     public class ScanSubjectInter : IRequest<Result>
     {
-        public ScanLevel Level { get; }
         public string LevelCode { get; }
         public int Size { get; }
         public int BlockSize { get; }
         public SubjectField Field { get; }
 
-
-
-        public ScanSubjectInter(SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
+        public ScanSubjectInter(string levelCode,SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
         {
-            Level = ScanLevel.InterSite;
+            LevelCode = levelCode;
             Size = size;
             BlockSize = blockSize;
             Field = field;
-        }
-
-        public ScanSubjectInter(string levelCode, SubjectField field = SubjectField.PKV, int size = 500, int blockSize = 500)
-        :this(field, size, blockSize)
-        {
-            Level = ScanLevel.Site;
-            LevelCode = levelCode;
         }
     }
 
@@ -58,87 +48,73 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
         public async Task<Result> Handle(ScanSubjectInter request, CancellationToken cancellationToken)
         {
-            Log.Debug($"scanning {request.Level}:{request.LevelCode} ...");
+           Log.Debug($"scanning {request.LevelCode} ...");
 
             var configs = _configRepository.GetConfigs().ToList();
 
             try
             {
-                int page = 1;
-                int totalRecords;
 
-                if (request.Level == ScanLevel.Site)
+                var blocks = await _repository.GetInterSiteBlocks();
+                var siteBlocks = blocks.ToList();
+
+
+                int blockCount = 1;
+
+                foreach (var siteBlock in siteBlocks)
                 {
-                    totalRecords = await _repository.GetRecordCount(request.Level, request.LevelCode);
-                }
-                else
-                {
-                    totalRecords= await _repository.GetRecordCount();
-                }
+                    int page = 1;
+                    var totalRecords = await _repository.GetRecordCount(ScanLevel.InterSite,siteBlock);
 
-                var pageCount = Custom.PageCount(request.Size, totalRecords);
+                    var pageCount = Custom.PageCount(request.Size, totalRecords);
 
-                while (page <= pageCount)
-                {
-                    Log.Debug($"Scanning page {page}/{pageCount}...");
-                    // Subjects
-                    List<SubjectIndex> subjects;
-
-                    if (request.Level == ScanLevel.Site)
+                    while (page <= pageCount)
                     {
-                        subjects = await _repository.Read(page, request.Size, request.Level, request.LevelCode);
-                    }
-                    else
-                    {
-                        subjects = await _repository.Read(page, request.Size);
-                    }
+                        Log.Debug($"Scanning page {page}/{pageCount}...");
 
-                    int subIndex = 0;
-                    var subjectsCount = subjects.Count;
-                    foreach (var subject in subjects)
-                    {
-                        subIndex++;
-                        Log.Debug($"Scanning page {page}/{pageCount} | Subject {subIndex} of {subjectsCount}...");
-                        var scores = new List<SubjectIndexScore>();
-                        // Block
+                        // Subjects
+                        var subjects = await _repository.Read(page, request.Size, ScanLevel.InterSite, siteBlock);
+                        int subIndex = 0;
+                        var subjectsCount = subjects.Count;
 
-                        int blockPage = 1;
-                        var totalBlockRecords = await _repository.GetBlockRecordCount(subject, request.Level);
-                        var blockPageCount = Custom.PageCount(request.BlockSize, totalBlockRecords);
-
-                        while (blockPage <= blockPageCount)
+                        foreach (var subject in subjects)
                         {
-                            // SCORE
+                            subIndex++;
+                            Log.Debug($"Scanning page {page}/{pageCount} | Subject {subIndex} of {subjectsCount}...");
+                            var scores = new List<SubjectIndexScore>();
 
-                            var otherSubjects =
-                                await _repository.ReadBlock(page, request.BlockSize, subject, request.Level);
+                                // SCORE
 
-                            foreach (var otherSubject in otherSubjects)
-                            {
-                                var score = SubjectIndexScore.GenerateScore(subject, otherSubject, request.Level,
-                                    _scorer, request.Field,request.LevelCode,configs);
-                                scores.Add(score);
-                            }
+                                var otherSubjects = subjects.Where(x => x.Id != subject.Id);
 
-                            await _repository.CreateOrUpdateAsync<SubjectIndexScore, Guid>(scores);
+                                foreach (var otherSubject in otherSubjects)
+                                {
+                                    var score = SubjectIndexScore.GenerateScore(subject, otherSubject, ScanLevel.InterSite,
+                                        _scorer, request.Field, request.LevelCode, configs);
+                                    scores.Add(score);
+                                }
 
-                            // BLOCK NOTIFY
+                                await _repository.CreateOrUpdateAsync<SubjectIndexScore, Guid>(scores);
 
-                            blockPage++;
+                                // BLOCK NOTIFY
+                                // SUBJECT NOTIFY
+                            await _mediator.Publish(new SubjectScanned(subject.Id, ScanLevel.InterSite), cancellationToken);
                         }
 
-                        // SUBJECT NOTIFY
-                        await _mediator.Publish(new SubjectScanned(subject.Id, request.Level), cancellationToken);
+                        page++;
                     }
 
-                    page++;
+                    blockCount++;
                 }
+
+
+
 
                 return Result.Ok();
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(ScanSubjectInterHandler)} Error");
+                Log.Error(e, $"{nameof(ScanSubjectHandler)} Error");
                 return Result.Failure(e.Message);
             }
         }
