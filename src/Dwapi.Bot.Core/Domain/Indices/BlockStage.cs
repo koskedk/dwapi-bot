@@ -29,7 +29,7 @@ namespace Dwapi.Bot.Core.Domain.Indices
 
         public override string ToString()
         {
-            return $"{Id}:{Progress}%  ({LastUpdate:D})";
+            return $"{Id}:{Progress}%  ({Completed}/{BlockCount})";
         }
     }
 }

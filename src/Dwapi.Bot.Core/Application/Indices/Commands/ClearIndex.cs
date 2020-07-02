@@ -51,7 +51,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 foreach (var site in subjectSites)
                 {
-                    var task = ClearIndex(site);
+                    var task = ClearIndex(site,subjectSites.Count);
                     tasks.Add(task);
                 }
 
@@ -70,10 +70,10 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             }
         }
 
-        private async Task ClearIndex(SubjectSiteDto siteDto)
+        private async Task ClearIndex(SubjectSiteDto siteDto,int count)
         {
             await _repository.Clear(siteDto.SiteCode);
-            await _mediator.Publish(new IndexSiteCleared(siteDto));
+            await _mediator.Publish(new IndexSiteCleared(siteDto,count));
         }
     }
 }

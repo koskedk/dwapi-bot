@@ -86,7 +86,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
         private async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
             List<MatchConfig> configs, CancellationToken cancellationToken)
         {
-            Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");
+            // Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");
 
             int page = 1;
             var totalRecords = await _repository.GetRecordCount(request.Level, siteBlock);
@@ -120,12 +120,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                     await _repository.Merge<SubjectIndexScore, Guid>(scores);
                 }
 
-                Log.Debug($"    --------------------------------------------------------");
-                Log.Debug($"    --------------------------------------------------------");
-                Log.Debug(
-                    $"    Scanning Block {blockCount}/{siteBlocksCount} {Custom.GetPerc(page, pageCount)}% [{subjectsCount}]");
-                Log.Debug($"    --------------------------------------------------------");
-                Log.Debug($"    --------------------------------------------------------");
+                // Log.Debug($"Scanning Block {blockCount}/{siteBlocksCount} {Custom.GetPerc(page, pageCount)}% [{subjectsCount}]");
                 page++;
             }
 
