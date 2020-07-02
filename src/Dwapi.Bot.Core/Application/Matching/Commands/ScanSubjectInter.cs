@@ -73,7 +73,8 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                         Log.Debug($"Scanning page {page}/{pageCount}...");
 
                         // Subjects
-                        var subjects = await _repository.Read(page, request.Size, ScanLevel.InterSite, siteBlock);
+                        var subjectIndices = await _repository.Read(page, request.Size, ScanLevel.InterSite, siteBlock);
+                        var subjects = subjectIndices.ToList();
                         int subIndex = 0;
                         var subjectsCount = subjects.Count;
 
@@ -94,11 +95,11 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                                     scores.Add(score);
                                 }
 
-                                await _repository.CreateOrUpdateAsync<SubjectIndexScore, Guid>(scores);
+                                await _repository.Merge<SubjectIndexScore, Guid>(scores);
 
-                                // BLOCK NOTIFY
-                                // SUBJECT NOTIFY
-                            await _mediator.Publish(new SubjectScanned(subject.Id, ScanLevel.InterSite), cancellationToken);
+                                await _mediator.Publish(new BlockScanned(siteBlock, ScanLevel.InterSite, ScanStatus.Scanned),
+                                    cancellationToken);  await _mediator.Publish(new BlockScanned(siteBlock, ScanLevel.Site, ScanStatus.Scanned),
+                                    cancellationToken);
                         }
 
                         page++;

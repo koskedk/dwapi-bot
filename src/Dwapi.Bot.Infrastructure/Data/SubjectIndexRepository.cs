@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -66,14 +67,23 @@ namespace Dwapi.Bot.Infrastructure.Data
             return GetCount<SubjectIndex, Guid>();
         }
 
-        public Task<int> GetRecordCount(ScanLevel level, Guid blockId)
+        public async Task<int> GetRecordCount(ScanLevel level, Guid blockId)
         {
-            if (level == ScanLevel.Site)
+            int count = 0;
+            var sql = $@"
+              select count(Id) from {nameof(BotContext.SubjectIndices)} where {nameof(SubjectIndex.SiteBlockId)}=@blockId";
+
+            if (level == ScanLevel.InterSite)
+                sql = sql.Replace(nameof(SubjectIndex.SiteBlockId), nameof(SubjectIndex.InterSiteBlockId));
+
+            using (var cn = GetConnectionOnly())
             {
-                return GetCount<SubjectIndex, Guid>(x => x.SiteBlockId == blockId);
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                count = await cn.ExecuteScalarAsync<int>(sql, new {blockId});
             }
 
-            return GetCount<SubjectIndex, Guid>(x => x.InterSiteBlockId == blockId);
+            return count;
         }
 
         public Task<List<SubjectIndex>> Read(int page, int pageSize)
@@ -97,19 +107,56 @@ namespace Dwapi.Bot.Infrastructure.Data
             return Read(page, pageSize);
         }
 
-        public Task<List<SubjectIndex>> Read(int page, int pageSize, ScanLevel level, Guid blockId)
+        public async Task<IEnumerable<SubjectIndex>> Read(int page, int pageSize, ScanLevel level, Guid blockId)
         {
-            if (level == ScanLevel.Site)
+
+            IEnumerable<SubjectIndex> records;
+            page = page < 0 ? 1 : page;
+            pageSize = pageSize < 0 ? 1 : pageSize;
+
+            var sql = @$"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockId)}=@blockId ORDER BY RowId";
+
+            if (level == ScanLevel.InterSite)
+                sql = sql.Replace(nameof(SubjectIndex.SiteBlockId), nameof(SubjectIndex.InterSiteBlockId));
+
+            var sqlPaging = @"
+                 OFFSET @Offset ROWS 
+                 FETCH NEXT @PageSize ROWS ONLY
+            ";
+
+            if (Context.Database.IsSqlite())
+                sqlPaging = @" LIMIT @PageSize OFFSET @Offset;";
+
+            sql = $"{sql}{sqlPaging}";
+
+            using (var con = GetConnectionOnly())
             {
-                    return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId),
-                            x => x.SiteBlockId == blockId)
-                        .ToListAsync();
+                if (con.State != ConnectionState.Open)
+                    con.Open();
+
+                records = await con.QueryAsync<SubjectIndex>(sql, new
+                {
+                    blockId,
+                    Offset = (page - 1) * pageSize,
+                    PageSize = pageSize
+                });
             }
+            return records;
+        }
 
-            return GetAllPaged<SubjectIndex, Guid>(page, pageSize, nameof(SubjectIndex.RowId),
-                    x => x.InterSiteBlockId == blockId)
-                .ToListAsync();
+        public async Task<int> GetBlockRecordCount(ScanLevel level)
+        {
+            var sql =
+                $@" SELECT 
+                        COUNT (DISTINCT {nameof(SubjectIndex.SiteBlockId)}) 
+                    FROM {nameof(BotContext.SubjectIndices)} 
+                    WHERE  {nameof(SubjectIndex.SiteBlockId)} IS NOT NULL ";
 
+            if (level==ScanLevel.InterSite)
+                sql = sql.Replace(nameof(SubjectIndex.SiteBlockId),nameof(SubjectIndex.InterSiteBlockId));
+
+            var results = await GetConnection().ExecuteScalarAsync<int>(sql);
+            return results;
         }
 
 
@@ -156,14 +203,16 @@ namespace Dwapi.Bot.Infrastructure.Data
             var count = await GetConnection().ExecuteAsync(sql);
         }
 
-        public Task Clear(int siteCode)
+        public async Task Clear(int siteCode)
         {
-            using var cn = GetConnectionOnly();
-            cn.Open();
-            var sql =
-                $"DELETE FROM {nameof(BotContext.SubjectIndices)} Where {nameof(SubjectIndex.SiteCode)}=@siteCode";
-
-            return cn.ExecuteAsync(sql, new {siteCode});
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                var sql =
+                    $"DELETE FROM {nameof(BotContext.SubjectIndices)} Where {nameof(SubjectIndex.SiteCode)}=@siteCode";
+                await cn.ExecuteAsync(sql, new {siteCode});
+            }
         }
 
         public Task CreateOrUpdate(IEnumerable<SubjectIndex> indices)
@@ -223,7 +272,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             return await GetConnection().QueryAsync<SubjectBlockDto>(sql);
         }
 
-        public Task BlockInterSiteSubjects(SubjectBlockDto blockDto)
+        public async Task BlockInterSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
               update {nameof(BotContext.SubjectIndices)} 
@@ -233,14 +282,20 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"CAST(strftime('%Y',DOB) as integer)");
 
-            using var cn = GetConnectionOnly();
-            cn.Open();
-            return cn.ExecuteAsync(sql,
-                new {year = blockDto.BirthYear, gender = blockDto.Gender,
-                    blockId = LiveGuid.NewGuid()});
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.ExecuteAsync(sql,
+                    new
+                    {
+                        year = blockDto.BirthYear, gender = blockDto.Gender,
+                        blockId = LiveGuid.NewGuid()
+                    });
+            }
         }
 
-        public Task BlockSiteSubjects(SubjectBlockDto blockDto)
+        public async Task BlockSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
               update {nameof(BotContext.SubjectIndices)} 
@@ -250,31 +305,57 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"CAST(strftime('%Y',DOB) as integer)");
 
-            using var cn = GetConnectionOnly();
-            cn.Open();
-            return cn.ExecuteAsync(sql,
-                new
-                {
-                    year = blockDto.BirthYear, gender = blockDto.Gender, siteCode = blockDto.SiteCode,
-                    blockId = LiveGuid.NewGuid()
-                });
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.ExecuteAsync(sql,
+                    new
+                    {
+                        year = blockDto.BirthYear, gender = blockDto.Gender, siteCode = blockDto.SiteCode,
+                        blockId = LiveGuid.NewGuid()
+                    });
+            }
         }
 
-        public async Task<IEnumerable<Guid>> GetSiteBlocks()
+        public async Task<IEnumerable<Guid>> GetSiteBlocks(ScanStatus status = ScanStatus.Pending)
         {
             var sql =
-                $@"SELECT DISTINCT {nameof(SubjectIndex.SiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockId)} IS NOT NULL ";
+                $@"SELECT DISTINCT {nameof(SubjectIndex.SiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockStatus)}=@status AND {nameof(SubjectIndex.SiteBlockId)} IS NOT NULL ";
 
-            var results=await GetConnection().QueryAsync<Guid>(sql);
+            var results=await GetConnection().QueryAsync<Guid>(sql,new {status});
             return results;
         }
 
-        public async Task<IEnumerable<Guid>> GetInterSiteBlocks()
+        public async Task<IEnumerable<Guid>> GetInterSiteBlocks(ScanStatus status = ScanStatus.Pending)
         {
             var sql =
-                $@"SELECT DISTINCT {nameof(SubjectIndex.InterSiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.InterSiteBlockId)} IS NOT NULL";
+                $@"SELECT DISTINCT {nameof(SubjectIndex.InterSiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.InterSiteBlockStatus)}=@status AND {nameof(SubjectIndex.InterSiteBlockId)} IS NOT NULL";
 
             return await GetConnection().QueryAsync<Guid>(sql);
+        }
+
+        public async Task UpdateScan(Guid notificationId, ScanLevel notificationLevel,ScanStatus status)
+        {
+            var sql = $@"
+              update {nameof(BotContext.SubjectIndices)} 
+              set {nameof(SubjectIndex.SiteBlockStatus)}=@status
+              where {nameof(SubjectIndex.SiteBlockId)}=@notificationId";
+
+            if (notificationLevel==ScanLevel.InterSite)
+                sql = sql.Replace(nameof(SubjectIndex.SiteBlockId),nameof(SubjectIndex.InterSiteBlockId));
+
+
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.ExecuteAsync(sql,
+                    new
+                    {
+                        status,notificationId
+                    });
+            }
         }
     }
 }

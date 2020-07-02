@@ -31,13 +31,15 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
+        private readonly IBlockStageRepository _blockStageRepository;
         private readonly IMasterPatientIndexReader _reader;
 
-        public BlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader)
+        public BlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader, IBlockStageRepository blockStageRepository)
         {
             _mediator = mediator;
             _repository = repository;
             _reader = reader;
+            _blockStageRepository = blockStageRepository;
         }
 
         public async Task<Result> Handle(BlockIndex request, CancellationToken cancellationToken)
@@ -49,18 +51,19 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 if (request.Level == ScanLevel.Site)
                 {
-                    blocks = await  _repository.GetSubjectSiteBlockDtos();
+                    blocks = await _repository.GetSubjectSiteBlockDtos();
                 }
                 else
                 {
-                    blocks = await  _repository.GetSubjectInterSiteBlockDtos();
+                    blocks = await _repository.GetSubjectInterSiteBlockDtos();
                 }
 
                 var blockSites = blocks.ToList();
 
-                await _mediator.Publish(new EventOccured("GetBlocks", $"Blocking", Convert.ToInt64(blockSites.Count)),cancellationToken);
+                await _mediator.Publish(new EventOccured("GetBlocks", $"Blocking", Convert.ToInt64(blockSites.Count)),
+                    cancellationToken);
 
-                var tasks=new List<Task>();
+                var tasks = new List<Task>();
 
                 foreach (var site in blockSites)
                 {
@@ -77,7 +80,9 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 }
 
                 if (tasks.Any())
-                    Task.WaitAll(tasks.ToArray(),cancellationToken);
+                    await Task.WhenAll(tasks.ToArray());
+
+                await _blockStageRepository.InitBlock(request.Level);
 
                 Log.Debug("blocking done");
 

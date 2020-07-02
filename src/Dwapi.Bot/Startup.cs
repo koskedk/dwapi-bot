@@ -60,6 +60,8 @@ namespace Dwapi.Bot
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
+
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IServiceProvider serviceProvider)

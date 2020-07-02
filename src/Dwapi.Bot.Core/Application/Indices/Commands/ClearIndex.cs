@@ -10,13 +10,14 @@ using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
 using MediatR;
 using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Indices.Commands
 {
-    public class ClearIndex:IRequest<Result>
+    public class ClearIndex : IRequest<Result>
     {
     }
 
@@ -24,13 +25,15 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
+        private readonly IBlockStageRepository _blockStageRepository;
         private readonly IMasterPatientIndexReader _reader;
 
-        public ClearIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader)
+        public ClearIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IMasterPatientIndexReader reader, IBlockStageRepository blockStageRepository)
         {
             _mediator = mediator;
             _repository = repository;
             _reader = reader;
+            _blockStageRepository = blockStageRepository;
         }
 
         public async Task<Result> Handle(ClearIndex request, CancellationToken cancellationToken)
@@ -53,7 +56,8 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 }
 
                 if (tasks.Any())
-                    Task.WaitAll(tasks.ToArray(),cancellationToken);
+                    await Task.WhenAll(tasks.ToArray());
+
 
                 Log.Debug("clearing patient index done");
 

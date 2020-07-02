@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -53,6 +54,22 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Log.Debug($"{count} Records");
         }
         [Test,Order(1)]
+        public void should_Get_Site_Block_Count()
+        {
+            Guid blockId = _subjectIndices.First().SiteBlockId.Value;
+            var count = _repository.GetRecordCount(ScanLevel.Site, blockId).Result;
+            Assert.True((count > 0));
+            Log.Debug($"{count} Records");
+        }
+        [Test,Order(1)]
+        public void should_Get_InterSite_Block_Count()
+        {
+            Guid blockId = _subjectIndices.First().InterSiteBlockId.Value;
+            var count = _repository.GetRecordCount(ScanLevel.InterSite, blockId).Result;
+            Assert.True((count > 0));
+            Log.Debug($"{count} Records");
+        }
+        [Test,Order(1)]
         public void should_Read_Paged()
         {
             var top5 = _repository.Read(1, 5).Result.ToList();
@@ -72,6 +89,26 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((bySitePg2.Count > 0));
         }
 
+        [Test, Order(1)]
+        public void should_Read_Site_Block_Paged()
+        {
+            Guid blockId = _subjectIndices.First().SiteBlockId.Value;
+            var bySitePg1 = _repository.Read(1, 5, ScanLevel.Site, blockId).Result.ToList();
+            Assert.True((bySitePg1.Count == 5));
+            var bySitePg2 = _repository.Read(2, 5, ScanLevel.Site, blockId).Result.ToList();
+            Assert.True((bySitePg2.Count == 5));
+        }
+
+        [Test, Order(1)]
+        public void should_Read_InterSite_Block_Paged()
+        {
+            Guid blockId = _subjectIndices.First().InterSiteBlockId.Value;
+            var bySitePg1 = _repository.Read(1, 5, ScanLevel.InterSite, blockId).Result.ToList();
+            Assert.True((bySitePg1.Count == 5));
+            var bySitePg2 = _repository.Read(2, 5, ScanLevel.InterSite, blockId).Result.ToList();
+            Assert.True((bySitePg2.Count == 5));
+        }
+
         [Test,Order(1)]
         public void should_Get_Block_Count()
         {
@@ -82,6 +119,19 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
+
+
+        [Test,Order(1)]
+        public void should_Get_Block_Record_Count()
+        {
+            // 2 F 1996 13165
+            var subject = TestData.GenerateSubject();
+
+            var count = _repository.GetBlockRecordCount(ScanLevel.Site).Result;
+            Assert.True((count > 0));
+            Log.Debug($"{count} Records");
+        }
+
 
         [Test,Order(1)]
         public void should_Read_Block_Paged()

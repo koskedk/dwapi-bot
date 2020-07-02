@@ -40,7 +40,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_PKV_Site()
         {
-            var command = new ScanSubject("13165");
+            var command = new ScanSubject();
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();
@@ -53,7 +53,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_Serial_Site()
         {
-            var command = new ScanSubject("13165",SubjectField.Serial);
+            var command = new ScanSubject(SubjectField.Serial);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();

@@ -67,7 +67,8 @@ namespace Dwapi.Bot.Infrastructure.Tests
                 .AddTransient<IMasterPatientIndexReader>(s =>
                     new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
-                .AddTransient<IMatchConfigRepository, MatchConfigRepository>();
+                .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
+                .AddTransient<IBlockStageRepository, BlockStageRepository>();
 
             Services = services;
 

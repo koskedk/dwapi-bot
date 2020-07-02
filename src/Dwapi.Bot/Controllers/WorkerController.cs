@@ -1,13 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Dwapi.Bot.Core.Application.Configs.Queries;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Matching.Commands;
-using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using MediatR;
@@ -36,10 +30,16 @@ namespace Dwapi.Bot.Controllers
 
             try
             {
+                var clearResults = await _mediator.Send(new ClearIndex());
+
+                if (clearResults.IsFailure)
+                    throw new Exception(clearResults.Error);
+
                 var results = await _mediator.Send(command.GenerateCommand());
 
                 if (results.IsSuccess)
                     return Ok("Refreshing...");
+
 
                 throw new Exception(results.Error);
             }
@@ -52,10 +52,8 @@ namespace Dwapi.Bot.Controllers
         }
 
         [HttpPost("Scan")]
-        public async Task<ActionResult> Post([FromBody] ScanDto command)
+        public async Task<ActionResult> Scan([FromBody] ScanDto command)
         {
-            var results = new List<Result>();
-            var siteCodes = new List<int>();
 
             if (null==command)
                 return BadRequest();
@@ -64,30 +62,51 @@ namespace Dwapi.Bot.Controllers
             {
                 if (command.AllSites)
                 {
-                    var sites = await _repository.GetSubjectSiteDtos();
-                    siteCodes.AddRange(sites.Select(x=>x.SiteCode).ToList());
+                    var blockResult = await _mediator.Send(new BlockIndex());
+
+                    if (blockResult.IsFailure)
+                        throw new Exception(blockResult.Error);
+
+                    var result = await _mediator.Send(new ScanSubject());
+                   if(result.IsSuccess)
+                        return Ok("Scanning...");
+
+                   throw new Exception(result.Error);
                 }
                 else
                 {
-                    siteCodes = command.Sites.ToList();
+                    return BadRequest();
                 }
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(ScanSubject)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
 
-                var commands = command.GenerateCommands(siteCodes);
-                foreach (var scanCommand in commands)
+        [HttpPost("ResumeScan")]
+        public async Task<ActionResult> ResumeScan([FromBody] ScanDto command)
+        {
+
+            if (null==command)
+                return BadRequest();
+
+            try
+            {
+                if (command.AllSites)
                 {
-                    var result=  await _mediator.Send(scanCommand);
-                    results.Add(result);
+                    var result = await _mediator.Send(new ScanSubject());
+                    if(result.IsSuccess)
+                        return Ok("Scanning...");
+
+                    throw new Exception(result.Error);
                 }
-
-                if (results.Any(x=>!x.IsFailure))
-                    return Ok("Scanning...");
-
-                var scb=new StringBuilder("Errors scanning:");
-                foreach (var result in results)
+                else
                 {
-                    scb.AppendLine(result.Error);
+                    return BadRequest();
                 }
-                throw new Exception(scb.ToString());
             }
             catch (Exception e)
             {

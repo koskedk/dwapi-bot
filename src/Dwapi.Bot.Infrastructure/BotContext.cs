@@ -11,6 +11,7 @@ namespace Dwapi.Bot.Infrastructure
         public DbSet<SubjectIndexScore> SubjectIndexScores { get; set; }
         public DbSet<SubjectIndexStage> SubjectIndexStages { get; set; }
         public DbSet<MatchConfig> MatchConfigs { get; set; }
+        public DbSet<BlockStage> BlockStages { get; set; }
         public BotContext(DbContextOptions<BotContext> options) : base(options)
         {
         }
@@ -21,6 +22,8 @@ namespace Dwapi.Bot.Infrastructure
             modelBuilder.ApplyConfiguration(new SubjectIndexConfiguration());
             modelBuilder.ApplyConfiguration(new SubjectIndexScoreConfiguration());
             modelBuilder.ApplyConfiguration(new SubjectIndexStageConfiguration());
+            modelBuilder.ApplyConfiguration(new MatchConfigConfiguration());
+            modelBuilder.ApplyConfiguration(new BlockStageConfiguration());
         }
 
         public void EnsureSeeded()

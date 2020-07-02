@@ -117,6 +117,16 @@ namespace Dwapi.Bot.Infrastructure.Data
                 GetConnection().BulkUpdate(updates);
         }
 
+        public async Task Merge<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>
+        {
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.BulkActionAsync(x => x.BulkMerge(entities));
+            }
+        }
+
         public virtual IDbConnection GetConnection(bool open = true)
         {
             if (null == _connection)
@@ -139,13 +149,14 @@ namespace Dwapi.Bot.Infrastructure.Data
 
         public IDbConnection GetConnectionOnly()
         {
+            IDbConnection cn = null;
             if (Context.Database.IsSqlServer())
-                _connection = new SqlConnection(ConnectionString);
+                cn = new SqlConnection(ConnectionString);
 
             if (Context.Database.IsSqlite())
-                _connection = new SqliteConnection(ConnectionString);
+                cn = new SqliteConnection(ConnectionString);
 
-            return _connection;
+            return cn;
         }
 
         public Task ExecCommand(string sqlCommand)

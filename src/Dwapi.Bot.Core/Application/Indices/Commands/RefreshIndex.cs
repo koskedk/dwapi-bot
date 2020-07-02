@@ -66,7 +66,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 }
 
                 if (tasks.Any())
-                    Task.WaitAll(tasks.ToArray());
+                    await Task.WhenAll(tasks.ToArray());
 
                 return Result.Ok();
             }
@@ -99,8 +99,11 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 var mpis = await _reader.Read(page, request.BatchSize, mpiSite.SiteCode);
 
                 var pis = Mapper.Map<List<SubjectIndex>>(mpis);
+                pis.Where(x=>x.IsInvalidSex())
+                    .ToList()
+                    .ForEach(p=>p.cleanUpSex());
 
-                await _repository.CreateOrUpdate(pis);
+                await _repository.Merge<SubjectIndex,Guid>(pis);
 
                 await _mediator.Publish(
                     new IndexRefreshed(pis.Count, totalRecords)

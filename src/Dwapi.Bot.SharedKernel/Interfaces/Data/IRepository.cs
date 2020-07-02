@@ -20,6 +20,7 @@ namespace Dwapi.Bot.SharedKernel.Interfaces.Data
         Task<bool> ExistsAsync<TC, TCId>(TC entity) where TC : Entity<TCId>;
         Task<bool> ExistsAsync<TC, TCId>(Expression<Func<TC, bool>> predicate) where TC : Entity<TCId>;
         Task CreateOrUpdateAsync<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>;
+        Task Merge<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>;
         Task ExecCommand(string sqlCommand);
         Task SaveAsync();
         IDbConnection GetConnection(bool open = true);
