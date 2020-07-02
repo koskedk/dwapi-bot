@@ -30,12 +30,12 @@ namespace Dwapi.Bot.Controllers
 
             try
             {
-                var clearResults = await _mediator.Send(new ClearIndex());
+                var clearJobResult = await _mediator.Send(new ClearIndex());
 
-                if (clearResults.IsFailure)
-                    throw new Exception(clearResults.Error);
+                if (clearJobResult.IsFailure)
+                    throw new Exception(clearJobResult.Error);
 
-                var results = await _mediator.Send(command.GenerateCommand());
+                var results = await _mediator.Send(new RefreshIndex(command.BatchSize,clearJobResult.Value));
 
                 if (results.IsSuccess)
                     return Ok("Refreshing...");

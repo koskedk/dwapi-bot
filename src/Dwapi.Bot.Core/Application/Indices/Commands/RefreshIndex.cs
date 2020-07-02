@@ -20,10 +20,12 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
     public class RefreshIndex : IRequest<Result>
     {
         public int BatchSize { get; }
+        public string JobId { get; }
 
-        public RefreshIndex(int batchSize)
+        public RefreshIndex(int batchSize, string jobId)
         {
             BatchSize = batchSize;
+            JobId = jobId;
         }
     }
 
@@ -56,7 +58,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 int siteCount = 1;
                 var tasks = new List<Task>();
 
-                var jobId = BatchJob.StartNew(x =>
+                var jobId = BatchJob.ContinueBatchWith(request.JobId,x =>
                 {
                     foreach (var mpiSite in mpiSites)
                     {

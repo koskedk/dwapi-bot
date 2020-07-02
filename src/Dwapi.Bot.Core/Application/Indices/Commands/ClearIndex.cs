@@ -41,7 +41,6 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                     new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),
                     cancellationToken);
 
-
                 var jobId = BatchJob.StartNew(x =>
                 {
                     foreach (var site in subjectSites)
