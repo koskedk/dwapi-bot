@@ -8,6 +8,7 @@ using Dwapi.Bot.Core.Application.Common.Events;
 using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
+using Dwapi.Bot.SharedKernel.Enums;
 using Hangfire;
 using MediatR;
 using Serilog;
@@ -16,6 +17,12 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 {
     public class ClearIndex : IRequest<Result<string>>
     {
+        public ScanLevel Level { get; }
+
+        public ClearIndex(ScanLevel level)
+        {
+            Level = level;
+        }
     }
 
     public class ClearIndexHandler : IRequestHandler<ClearIndex, Result<string>>
@@ -42,7 +49,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                     new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),
                     cancellationToken);
 
-                var jobId = BatchJob.StartNew(x =>
+                var mainJobId = BatchJob.StartNew(x =>
                 {
                     if (!subjectSites.Any())
                     {
@@ -59,18 +66,19 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                         }
                     }
 
-                });
+                },$"{nameof(ClearIndex)} {request.Level}");
 
-                BatchJob.ContinueBatchWith(jobId,
-                    x => { x.Enqueue(() => SendNotification(subjectSites.Count)); });
+                var jobId= BatchJob.ContinueBatchWith(mainJobId,
+                    x => { x.Enqueue(() => SendNotification(subjectSites.Count,mainJobId,request.Level)); },
+                $"{nameof(ClearIndex)} {request.Level} Notification");
 
-                Log.Debug($"clearing index scheduled {jobId}");
+                Log.Debug($"clearing index scheduled {mainJobId}");
 
                 return Result.Ok(jobId);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(CreateTask)} Error");
+                Log.Error(e, $"{nameof(ClearIndex)} Error");
                 return Result.Failure<string>(e.Message);
             }
         }
@@ -83,9 +91,9 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
         }
 
-        public async Task SendNotification(int count)
+        public async Task SendNotification(int count,string jobId,ScanLevel level)
         {
-            await _mediator.Publish(new IndexCleared(count));
+            await _mediator.Publish(new IndexCleared(count,jobId,level));
         }
     }
 }

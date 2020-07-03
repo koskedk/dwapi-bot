@@ -9,7 +9,6 @@ using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 
 namespace Dwapi.Bot.Infrastructure.Data
 {

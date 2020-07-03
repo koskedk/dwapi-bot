@@ -6,11 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
-using Dwapi.Bot.Core.Application.Common.Events;
 using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
 using Hangfire;
 using MediatR;
@@ -18,19 +18,21 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Indices.Commands
 {
-    public class RefreshIndex : IRequest<Result>
+    public class RefreshIndex : IRequest<Result<string>>
     {
+        public ScanLevel Level { get; }
         public int BatchSize { get; }
-        public string JobId { get; }
+        public string ClearJobId { get; }
 
-        public RefreshIndex(int batchSize, string jobId)
+        public RefreshIndex(int batchSize, string clearJobId, ScanLevel level)
         {
             BatchSize = batchSize;
-            JobId = jobId;
+            ClearJobId = clearJobId;
+            Level = level;
         }
     }
 
-    public class RefreshIndexHandler : IRequestHandler<RefreshIndex, Result>
+    public class RefreshIndexHandler : IRequestHandler<RefreshIndex, Result<string>>
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
@@ -44,7 +46,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             _reader = reader;
         }
 
-        public async Task<Result> Handle(RefreshIndex request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Handle(RefreshIndex request, CancellationToken cancellationToken)
         {
             Log.Debug("refreshing index...");
             try
@@ -58,44 +60,60 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 int siteCount = 1;
                 var tasks = new List<Task>();
-                string jobId;
+                string mainJobId;
 
-                if (string.IsNullOrWhiteSpace(request.JobId))
+                if (string.IsNullOrWhiteSpace(request.ClearJobId))
                 {
-                    jobId = BatchJob.StartNew(x =>
+                    mainJobId = BatchJob.StartNew(x =>
                     {
-                        foreach (var mpiSite in mpiSites)
+                        if (!mpiSites.Any())
                         {
-                            var count = siteCount;
-                            x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
-                            siteCount++;
+                            x.Enqueue(() => Log.Debug("NO SITES"));
                         }
-                    });
+                        else
+                        {
+                            foreach (var mpiSite in mpiSites)
+                            {
+                                var count = siteCount;
+                                x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
+                                siteCount++;
+                            }
+                        }
+                    },
+                    $"{nameof(RefreshIndex)}");
                 }
                 else
                 {
-                    jobId = BatchJob.ContinueBatchWith(request.JobId, x =>
+                    mainJobId = BatchJob.ContinueBatchWith(request.ClearJobId, x =>
                     {
-                        foreach (var mpiSite in mpiSites)
+                        if (!mpiSites.Any())
                         {
-                            var count = siteCount;
-                            x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
-                            siteCount++;
+                            x.Enqueue(() => Log.Debug("NO SITES"));
                         }
-                    });
+                        else
+                        {
+                            foreach (var mpiSite in mpiSites)
+                            {
+                                var count = siteCount;
+                                x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
+                                siteCount++;
+                            }
+                        }
+                    },$"{nameof(RefreshIndex)} {request.Level}");
                 }
 
-                BatchJob.ContinueBatchWith(jobId,
-                    x => { x.Enqueue(() => SendNotification(mpiSites.Count)); });
+                var jobId = BatchJob.ContinueBatchWith(mainJobId,
+                    x => { x.Enqueue(() => SendNotification(mpiSites.Count, mainJobId,request.Level)); },
+                    $"{nameof(RefreshIndex)} {request.Level} Notification");
 
-                Log.Debug($"refreshing scheduled [{jobId}]");
+                Log.Debug($"refreshing scheduled [{mainJobId}]");
 
-                return Result.Ok();
+                return Result.Ok(jobId);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(RefreshIndexHandler)} Error");
-                return Result.Failure(e.Message);
+                Log.Error(e, $"{nameof(RefreshIndex)} Error");
+                return Result.Failure<string>(e.Message);
             }
         }
 
@@ -117,20 +135,20 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 var masterPatientIndices = await _reader.Read(page, request.BatchSize, mpiSite.SiteCode);
 
                 var subjectIndices = Mapper.Map<List<SubjectIndex>>(masterPatientIndices);
-                subjectIndices.Where(x=>x.IsInvalidSex())
+                subjectIndices.Where(x => x.IsInvalidSex())
                     .ToList()
-                    .ForEach(p=>p.cleanUpSex());
+                    .ForEach(p => p.cleanUpSex());
                 recordCount += subjectIndices.Count;
-                await _repository.Merge<SubjectIndex,Guid>(subjectIndices);
+                await _repository.Merge<SubjectIndex, Guid>(subjectIndices);
                 page++;
             }
 
-            await _mediator.Publish(new IndexSiteRefreshed(mpiSite,recordCount));
+            await _mediator.Publish(new IndexSiteRefreshed(mpiSite, recordCount));
         }
 
-        public async Task SendNotification(int count)
+        public async Task SendNotification(int count, string jobId, ScanLevel level)
         {
-            await _mediator.Publish(new IndexRefreshed(count));
+            await _mediator.Publish(new IndexRefreshed(count, jobId, level));
         }
     }
 }

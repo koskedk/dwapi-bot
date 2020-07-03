@@ -17,33 +17,30 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
-    public class ScanSubject : IRequest<Result>
+    public class ScanIndex : IRequest<Result<string>>
     {
         public string JobId { get;  }
         public ScanLevel Level { get; }
         public int Size { get; }
-        public int BlockSize { get; }
         public SubjectField Field { get; }
 
-        public ScanSubject(string jobId, ScanLevel level = ScanLevel.Site, SubjectField field = SubjectField.PKV, int size = 500,
-            int blockSize = 500)
+        public ScanIndex(string jobId, ScanLevel level, SubjectField field , int size)
         {
             Level = level;
             JobId = jobId;
             Size = size;
-            BlockSize = blockSize;
             Field = field;
         }
     }
 
-    public class ScanSubjectHandler : IRequestHandler<ScanSubject, Result>
+    public class ScanIndexHandler : IRequestHandler<ScanIndex, Result<string>>
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
         private readonly IMatchConfigRepository _configRepository;
         private readonly IJaroWinklerScorer _scorer;
 
-        public ScanSubjectHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer,
+        public ScanIndexHandler(IMediator mediator, ISubjectIndexRepository repository, IJaroWinklerScorer scorer,
             IMatchConfigRepository configRepository)
         {
             _mediator = mediator;
@@ -52,7 +49,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
             _configRepository = configRepository;
         }
 
-        public async Task<Result> Handle(ScanSubject request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Handle(ScanIndex request, CancellationToken cancellationToken)
         {
             Log.Debug($"scanning Within {request.Level} ...");
 
@@ -69,10 +66,10 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 int blockCount = 1;
                 Log.Debug($"Scanning blocks {siteBlocks.Count}...");
 
-                string jobId;
+                string mainJobId;
                 if (string.IsNullOrWhiteSpace(request.JobId))
                 {
-                     jobId= BatchJob.StartNew(x =>
+                    mainJobId= BatchJob.StartNew(x =>
                     {
                         foreach (var siteBlock in siteBlocks)
                         {
@@ -81,11 +78,12 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                             blockCount++;
                         }
 
-                    });
+                    },
+                        $"{nameof(ScanIndex)} {request.Level}");
                 }
                 else
                 {
-                    jobId = BatchJob.ContinueBatchWith(request.JobId, x =>
+                    mainJobId = BatchJob.ContinueBatchWith(request.JobId, x =>
                     {
                         foreach (var siteBlock in siteBlocks)
                         {
@@ -94,25 +92,28 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                             blockCount++;
                         }
 
-                    });
+                    },
+                        $"{nameof(ScanIndex)} {request.Level}");
                 }
 
+                var jobId=  BatchJob.ContinueBatchWith(mainJobId,
+                    x => { x.Enqueue(() => SendNotification(siteBlocks.Count,mainJobId,request.Level)); },
+                    $"{nameof(ScanIndex)} {request.Level} Notification");
+
                 Log.Debug($"Scanning scheduled {jobId}...");
-                return Result.Ok();
+                return Result.Ok(jobId);
             }
             catch (Exception e)
             {
-                Log.Error(e, $"{nameof(ScanSubjectHandler)} Error");
-                return Result.Failure(e.Message);
+                Log.Error(e, $"{nameof(ScanIndex)} Error");
+                return Result.Failure<string>(e.Message);
             }
         }
 
         [DisplayName("Scanning {2}/{3}")]
-        public async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
+        public async Task CreateTask(ScanIndex request, Guid siteBlock, int blockCount, int siteBlocksCount,
             List<MatchConfig> configs)
         {
-            // Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");
-
             int page = 1;
             var totalRecords = await _repository.GetRecordCount(request.Level, siteBlock);
 
@@ -144,14 +145,14 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
                     await _repository.Merge<SubjectIndexScore, Guid>(scores);
                 }
-
-                // Log.Debug($"Scanning Block {blockCount}/{siteBlocksCount} {Custom.GetPerc(page, pageCount)}% [{subjectsCount}]");
                 page++;
             }
+            await _mediator.Publish(new IndexSiteScanned(siteBlock, request.Level, ScanStatus.Scanned));
+        }
 
-            await _mediator.Publish(new BlockScanned(siteBlock, request.Level, ScanStatus.Scanned));
-
-            // await _mediator.Publish(new BlockUpdated(request.Level));
+        public async Task SendNotification(int count,string jobId, ScanLevel scanLevel)
+        {
+            await _mediator.Publish(new IndexScanned(count,jobId, scanLevel));
         }
     }
 }

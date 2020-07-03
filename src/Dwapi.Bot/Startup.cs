@@ -2,8 +2,11 @@ using System;
 using System.Reflection;
 using AutoMapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
+using Dwapi.Bot.Core.Application.Common;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Application.Workflows;
+using Dwapi.Bot.Core.Application.WorkFlows;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
@@ -12,6 +15,7 @@ using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
 using Dwapi.Bot.SharedKernel.Enums;
+using Dwapi.Bot.SharedKernel.Interfaces.App;
 using Hangfire;
 using Hangfire.SqlServer;
 using MediatR;
@@ -44,6 +48,9 @@ namespace Dwapi.Bot
             var connectionString = Configuration["ConnectionStrings:botConnection"];
             var mpiConnectionString = Configuration["ConnectionStrings:mpiConnection"];
 
+            int batchSize = Configuration.GetSection("BatchSize").Get<int>();
+            int blockSize = Configuration.GetSection("BlockSize").Get<int>();
+            bool workflowEnabled = Configuration.GetSection("WorkflowEnabled").Get<bool>();
 
             services.AddDbContext<BotContext>(o => o.UseSqlServer(
                     connectionString,
@@ -51,6 +58,8 @@ namespace Dwapi.Bot
                 )
             );
 
+            services.AddSingleton<IAppSetting>(ctx => new AppSetting(workflowEnabled,blockSize,batchSize));
+            services.AddSingleton<IScanWorkflow, ScanWorkFlow>();
             services.AddTransient<IJaroWinklerScorer, JaroWinklerScorer>();
             services.AddTransient<IMasterPatientIndexReader>(s =>
                 new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));

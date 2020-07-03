@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Interfaces.Data;

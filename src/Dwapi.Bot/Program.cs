@@ -1,7 +1,9 @@
 using System;
+using Dwapi.Bot.Config;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 
@@ -22,7 +24,10 @@ namespace Dwapi.Bot
             try
             {
                 Log.Information($"Starting Dwapi.Bot ...");
-                CreateHostBuilder(args).Build().Run();
+                var host = CreateHostBuilder(args).Build();
+                var config = host.Services.GetRequiredService<IConfiguration>();
+                BotSetup.Initialize(config);
+                host.Run();
             }
             catch (Exception ex)
             {

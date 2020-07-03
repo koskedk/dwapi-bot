@@ -1,6 +1,6 @@
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Tests.TestArtifacts;
-using Dwapi.Bot.Infrastructure;
+using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -11,7 +11,6 @@ namespace Dwapi.Bot.Core.Tests.Commands
     public class ClearIndexHandlerTests
     {
         private IMediator _mediator;
-        private BotContext _context;
 
         [OneTimeSetUp]
         public void Init()
@@ -23,13 +22,12 @@ namespace Dwapi.Bot.Core.Tests.Commands
         public void SetUp()
         {
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
-            _context= TestInitializer.ServiceProvider.GetService<BotContext>();
         }
 
         [Test]
         public void should_Clear()
         {
-            var command = new ClearIndex();
+            var command = new ClearIndex(ScanLevel.Site);
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);

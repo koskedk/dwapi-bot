@@ -1,5 +1,7 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using Serilog;
 
@@ -7,10 +9,21 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
 {
     public class IndexCleared : INotification
     {
+        public ScanLevel Level { get; }
         public int TotalSites { get; }
-        public IndexCleared(int totalSites)
+        public string JobId { get; }
+        public DateTime Date => DateTime.Now;
+
+        public IndexCleared(int totalSites, string jobId, ScanLevel level)
         {
             TotalSites = totalSites;
+            JobId = jobId;
+            Level = level;
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(IndexCleared)}:{TotalSites} site(s) | {JobId} {Date:ddMMMyy hh:mm:ss} ";
         }
     }
 
@@ -19,7 +32,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
         public Task Handle(IndexCleared notification, CancellationToken cancellationToken)
         {
             Log.Debug(new string('*',40));
-            Log.Debug($"{nameof(IndexCleared)}:{notification.TotalSites} site(s)");
+            Log.Debug(notification.ToString());
             Log.Debug(new string('*',40));
             return Task.CompletedTask;
         }

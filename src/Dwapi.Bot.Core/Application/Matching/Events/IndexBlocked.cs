@@ -5,36 +5,36 @@ using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using Serilog;
 
-namespace Dwapi.Bot.Core.Application.Indices.Events
+namespace Dwapi.Bot.Core.Application.Matching.Events
 {
-    public class IndexRefreshed:INotification
+    public class IndexBlocked : INotification
     {
-        public ScanLevel Level { get; }
+        public ScanLevel Level { get; set; }
         public int Count { get; }
         public string JobId { get; }
         public DateTime Date => DateTime.Now;
-
-        public IndexRefreshed(int count, string jobId, ScanLevel level)
+        public IndexBlocked(int count, string jobId,ScanLevel level )
         {
             Count = count;
-            JobId = jobId;
             Level = level;
+            JobId = jobId;
         }
 
         public override string ToString()
         {
-            return $"{nameof(IndexCleared)}:{Count} site(s) | {JobId} {Date:ddMMMyy hh:mm:ss} ";
+            return $"{nameof(IndexBlocked)}:{Count} blocks(s) | {JobId} {Date:ddMMMyy hh:mm:ss} ";
         }
     }
-
-    public class IndexRefreshedEventHandler : INotificationHandler<IndexRefreshed>
+    public class IndexBlockedEventHandler : INotificationHandler<IndexBlocked>
     {
-        public Task Handle(IndexRefreshed notification, CancellationToken cancellationToken)
+        public Task Handle(IndexBlocked notification, CancellationToken cancellationToken)
         {
             Log.Debug(new string('*',40));
-            Log.Debug($"{notification}");
+            Log.Debug($"{notification.Count}");
             Log.Debug(new string('*',40));
             return Task.CompletedTask;
         }
     }
+
+
 }

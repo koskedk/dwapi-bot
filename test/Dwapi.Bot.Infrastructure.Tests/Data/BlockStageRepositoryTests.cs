@@ -1,5 +1,3 @@
-using System.Linq;
-using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Infrastructure.Tests.TestArtifacts;
 using Dwapi.Bot.SharedKernel.Enums;

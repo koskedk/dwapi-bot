@@ -6,22 +6,22 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Matching.Events
 {
-    public class AreaBlocked:INotification
+    public class IndexSiteBlocked:INotification
     {
         public SubjectBlockDto SubjectBlock { get;  }
 
-        public AreaBlocked(SubjectBlockDto subjectBlock)
+        public IndexSiteBlocked(SubjectBlockDto subjectBlock)
         {
             SubjectBlock = subjectBlock;
         }
     }
 
-    public class AreaBlockedEventHandler : INotificationHandler<AreaBlocked>
+    public class AreaBlockedEventHandler : INotificationHandler<IndexSiteBlocked>
     {
-        public Task Handle(AreaBlocked notification, CancellationToken cancellationToken)
+        public Task Handle(IndexSiteBlocked notification, CancellationToken cancellationToken)
         {
             Log.Debug(new string('-',40));
-            Log.Debug($"{nameof(AreaBlocked)}:{notification.SubjectBlock}");
+            Log.Debug($"{nameof(IndexSiteBlocked)}:{notification.SubjectBlock}");
             Log.Debug(new string('-',40));
             return Task.CompletedTask;
         }

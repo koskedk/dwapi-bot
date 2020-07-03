@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dwapi.Bot.Core.Application.Common.Events;
-using Dwapi.Bot.Core.Application.Indices.Commands;
 using MediatR;
 using Serilog;
 

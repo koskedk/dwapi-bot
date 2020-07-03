@@ -5,8 +5,10 @@ using System.Linq;
 using AutoMapper;
 using Dapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
+using Dwapi.Bot.Core.Application.Common;
 using Dwapi.Bot.Core.Application.Indices.Commands;
-using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Application.Workflows;
+using Dwapi.Bot.Core.Application.WorkFlows;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
@@ -16,7 +18,10 @@ using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
 using Dwapi.Bot.SharedKernel.Enums;
+using Dwapi.Bot.SharedKernel.Interfaces.App;
 using Dwapi.Bot.SharedKernel.Utility;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +42,7 @@ namespace Dwapi.Bot.Core.Tests
         public static string ConnectionString;
         public static string MpiConnectionString;
         public static IConfigurationRoot Configuration;
+        public static BackgroundJobServer Server;
 
         [OneTimeSetUp]
         public void Init()
@@ -71,6 +77,8 @@ namespace Dwapi.Bot.Core.Tests
 
             services
                 .AddTransient<BotContext>()
+                .AddSingleton<IAppSetting>(ctx => new AppSetting(false,100,100))
+                .AddTransient<IScanWorkflow, ScanWorkFlow>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader>(s =>
                     new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
@@ -78,6 +86,10 @@ namespace Dwapi.Bot.Core.Tests
                 .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
                 .AddTransient<IBlockStageRepository, BlockStageRepository>()
                 .AddMediatR(typeof(RefreshIndex).Assembly, typeof(TestEventOccuredHandler).Assembly);
+
+            GlobalConfiguration.Configuration.UseMemoryStorage();
+            GlobalConfiguration.Configuration.UseBatches();
+            Server=new BackgroundJobServer();
 
             Services = services;
 
