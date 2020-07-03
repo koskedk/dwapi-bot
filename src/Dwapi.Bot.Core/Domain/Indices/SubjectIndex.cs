@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Model;
 
 namespace Dwapi.Bot.Core.Domain.Indices
 {
-    public class SubjectIndex:Entity<Guid>
+    public class SubjectIndex : Entity<Guid>
     {
         public Guid MpiId { get; set; }
         public int PatientPk { get; set; }
@@ -28,18 +29,44 @@ namespace Dwapi.Bot.Core.Domain.Indices
         public string sxdmPKValue { get; set; }
         public string sxPKValueDoB { get; set; }
         public string dmPKValueDoB { get; set; }
+
         /// <summary>
         /// The PKV
         /// </summary>
         public string sxdmPKValueDoB { get; set; }
+
         public Guid? FacilityId { get; set; }
         public int RowId { get; set; }
-        public ICollection<SubjectIndexScore> IndexScores { get; set; }=new List<SubjectIndexScore>();
-        public ICollection<SubjectIndexStage> IndexStages { get; set; }=new List<SubjectIndexStage>();
+        public Guid? SiteBlockId { get; set; }
+        public ScanStatus SiteBlockStatus { get; set; }
+        public Guid? InterSiteBlockId { get; set; }
+        public ScanStatus InterSiteBlockStatus { get; set; }
+        public ICollection<SubjectIndexScore> IndexScores { get; set; } = new List<SubjectIndexScore>();
+        public ICollection<SubjectIndexStage> IndexStages { get; set; } = new List<SubjectIndexStage>();
 
         public override string ToString()
         {
             return $"{SiteCode}|{Serial}|{sxdmPKValueDoB}";
+        }
+
+        public void cleanUpSex()
+        {
+            if (Gender.ToLower() == "M".ToLower())
+            {
+                Gender = "Male";
+            }
+
+            if (Gender.ToLower() == "F".ToLower())
+            {
+                Gender = "Female";
+            }
+        }
+
+        public bool IsInvalidSex()
+        {
+            return
+                Gender.ToLower() == "M".ToLower() ||
+                Gender.ToLower() == "F".ToLower();
         }
     }
 }

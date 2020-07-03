@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dwapi.Bot.Core.Domain.Indices;
+using Dwapi.Bot.SharedKernel.Enums;
 using FizzWare.NBuilder;
 using Newtonsoft.Json;
 
@@ -11,16 +12,34 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
     {
         public static List<SubjectIndex> GenerateSubjects(bool simulate=false,int count = 5)
         {
+          var guid = Guid.NewGuid();
+          var guidInter=Guid.NewGuid();
           if (simulate)
           {
             var subjects = JsonConvert.DeserializeObject<List<SubjectIndex>>(SubjectsJson());
-            subjects.ForEach(x=>x.AssignId());
+            subjects.ForEach(x=>
+            {
+              x.AssignId();
+              x.SiteBlockStatus = ScanStatus.Pending;
+              x.InterSiteBlockStatus = ScanStatus.Pending;
+              x.SiteBlockId = guid;
+              x.InterSiteBlockId = guidInter;
+            });
             return subjects;
           }
 
           return Builder<SubjectIndex>.CreateListOfSize(count)
                 .Build()
                 .ToList();
+        }
+
+        public static List<SubjectIndex> GenerateSubjectsWithStages()
+        {
+          var subjects = GenerateSubjects(true);
+          subjects.First().SiteBlockStatus = ScanStatus.Scanned;
+          subjects.Last().InterSiteBlockStatus = ScanStatus.Scanned;
+
+          return subjects;
         }
 
         public static SubjectIndex GenerateSubject()
@@ -56,6 +75,15 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
             .Build()
             .ToList();
         }
+
+        public static List<BlockStage> GenerateBlocStages()
+        {
+          var stages = new List<BlockStage>();
+          stages.Add(new BlockStage(ScanLevel.Site,10));
+          stages.Add(new BlockStage(ScanLevel.InterSite,10));
+          return stages;
+        }
+
 
         private static string SubjectsJson()
         {

@@ -1,12 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using AutoMapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
+using Dwapi.Bot.Core.Application.Common;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Application.Workflows;
+using Dwapi.Bot.Core.Application.WorkFlows;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
@@ -15,11 +15,12 @@ using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.Infrastructure.Data;
 using Dwapi.Bot.SharedKernel.Common;
 using Dwapi.Bot.SharedKernel.Enums;
+using Dwapi.Bot.SharedKernel.Interfaces.App;
+using Hangfire;
+using Hangfire.SqlServer;
 using MediatR;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +48,9 @@ namespace Dwapi.Bot
             var connectionString = Configuration["ConnectionStrings:botConnection"];
             var mpiConnectionString = Configuration["ConnectionStrings:mpiConnection"];
 
+            int batchSize = Configuration.GetSection("BatchSize").Get<int>();
+            int blockSize = Configuration.GetSection("BlockSize").Get<int>();
+            bool workflowEnabled = Configuration.GetSection("WorkflowEnabled").Get<bool>();
 
             services.AddDbContext<BotContext>(o => o.UseSqlServer(
                     connectionString,
@@ -54,12 +58,39 @@ namespace Dwapi.Bot
                 )
             );
 
+            services.AddSingleton<IAppSetting>(ctx => new AppSetting(workflowEnabled,blockSize,batchSize));
+            services.AddSingleton<IScanWorkflow, ScanWorkFlow>();
             services.AddTransient<IJaroWinklerScorer, JaroWinklerScorer>();
             services.AddTransient<IMasterPatientIndexReader>(s =>
                 new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
+            services.AddScoped<IBlockStageRepository, BlockStageRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
+            services.AddHangfire(configuration => configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(Configuration.GetConnectionString("jobzConnection"), new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    UsePageLocksOnDequeue = true,
+                    DisableGlobalLocks = true
+                }));
+
+            //add hangfire server 1
+            services.AddHangfireServer(x => x.ServerName = "Server 1");
+
+            //add hangfire server 2
+            services.AddHangfireServer(x => x.ServerName = "Server 2");
+
+            //add hangfire server 3
+            services.AddHangfireServer(x => x.ServerName = "Server 3");
+
+
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IServiceProvider serviceProvider)
@@ -84,6 +115,9 @@ namespace Dwapi.Bot
             app.UseDefaultFiles();
             app.UseStaticFiles();
             app.UseRouting();
+
+            app.UseHangfireDashboard("/hangfire");
+            GlobalConfiguration.Configuration.UseBatches();
 
             app.UseEndpoints(endpoints =>
             {

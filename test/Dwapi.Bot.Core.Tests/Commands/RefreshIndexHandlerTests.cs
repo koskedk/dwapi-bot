@@ -1,5 +1,5 @@
 using Dwapi.Bot.Core.Application.Indices.Commands;
-using Dwapi.Bot.Infrastructure;
+using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using NUnit.Framework;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,24 +10,22 @@ namespace Dwapi.Bot.Core.Tests.Commands
     public class RefreshIndexHandlerTests
     {
         private IMediator _mediator;
-        private BotContext _context;
+        private string _jobId;
 
         [OneTimeSetUp]
         public void Init()
         {
             TestInitializer.ClearDb();
-        }
-        [SetUp]
-        public void SetUp()
-        {
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
-            _context= TestInitializer.ServiceProvider.GetService<BotContext>();
+            var command = new ClearIndex(ScanLevel.Site);
+            var result = _mediator.Send(command).Result;
+            _jobId = result.Value;
         }
 
         [Test]
         public void should_Refresh()
         {
-            var command = new RefreshIndex(5);
+            var command = new RefreshIndex(5, _jobId,ScanLevel.Site);
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
