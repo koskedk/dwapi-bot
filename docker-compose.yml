@@ -2,11 +2,11 @@ version: '3.4'
 
 services:
   dwapi:
-    image: kenyahmis/pkvcentral:latest
+    image: kenyahmis/dwapibot:latest
     build:
       context: .
-      dockerfile: DwapiCentral/Dockerfile
+      dockerfile: src/Dwapi.Bot/Dockerfile
     ports:
-      - "6767:6767"
-      - "6763:6763"
+      - "8787:5000"
+      - "8783:5001"
     restart: unless-stopped
