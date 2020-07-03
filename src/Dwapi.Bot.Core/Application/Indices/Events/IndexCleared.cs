@@ -18,7 +18,9 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
     {
         public Task Handle(IndexCleared notification, CancellationToken cancellationToken)
         {
+            Log.Debug(new string('*',40));
             Log.Debug($"{nameof(IndexCleared)}:{notification.TotalSites} site(s)");
+            Log.Debug(new string('*',40));
             return Task.CompletedTask;
         }
     }

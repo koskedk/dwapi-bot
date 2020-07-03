@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
+using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Matching.Events
 {
@@ -22,21 +24,22 @@ namespace Dwapi.Bot.Core.Application.Matching.Events
         }
     }
 
-    public class BlockScannedHandler:INotificationHandler<BlockScanned>
+    public class BlockScannedHandler : INotificationHandler<BlockScanned>
     {
         private readonly ISubjectIndexRepository _repository;
-        private readonly IBlockStageRepository _blockStageRepository;
 
-        public BlockScannedHandler(ISubjectIndexRepository repository, IBlockStageRepository blockStageRepository)
+        public BlockScannedHandler(ISubjectIndexRepository repository)
         {
             _repository = repository;
-            _blockStageRepository = blockStageRepository;
         }
 
         public async Task Handle(BlockScanned notification, CancellationToken cancellationToken)
         {
-            await _repository.UpdateScan(notification.Id, notification.Level,notification.Status);
-            await _blockStageRepository.UpdateBlock(notification.Level);
+            Log.Debug(new string('*', 40));
+            Log.Debug($"{nameof(BlockScanned)}:{notification.Id}");
+            Log.Debug(new string('*', 40));
+            // return Task.CompletedTask;
+            await _repository.UpdateScan(notification.Id, notification.Level, notification.Status);
         }
     }
 }

@@ -4,6 +4,7 @@ using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Matching.Commands;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
+using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -35,11 +36,10 @@ namespace Dwapi.Bot.Controllers
                 if (clearJobResult.IsFailure)
                     throw new Exception(clearJobResult.Error);
 
-                var results = await _mediator.Send(new RefreshIndex(command.BatchSize,clearJobResult.Value));
+                var results = await _mediator.Send(new RefreshIndex(command.BatchSize, clearJobResult.Value));
 
                 if (results.IsSuccess)
-                    return Ok("Refreshing...");
-
+                    return Ok("Refreshing STARTED");
 
                 throw new Exception(results.Error);
             }
@@ -55,23 +55,24 @@ namespace Dwapi.Bot.Controllers
         public async Task<ActionResult> Scan([FromBody] ScanDto command)
         {
 
-            if (null==command)
+            if (null == command)
                 return BadRequest();
 
             try
             {
                 if (command.AllSites)
                 {
-                    var blockResult = await _mediator.Send(new BlockIndex());
+                    var blockResult = await _mediator.Send(new BlockSubject());
 
                     if (blockResult.IsFailure)
                         throw new Exception(blockResult.Error);
 
-                    var result = await _mediator.Send(new ScanSubject());
-                   if(result.IsSuccess)
-                        return Ok("Scanning...");
+                    var result = await _mediator.Send(new ScanSubject(blockResult.Value));
 
-                   throw new Exception(result.Error);
+                    if (result.IsSuccess)
+                        return Ok("Scan STARTED");
+
+                    throw new Exception(result.Error);
                 }
                 else
                 {
@@ -90,16 +91,82 @@ namespace Dwapi.Bot.Controllers
         public async Task<ActionResult> ResumeScan([FromBody] ScanDto command)
         {
 
-            if (null==command)
+            if (null == command)
                 return BadRequest();
 
             try
             {
                 if (command.AllSites)
                 {
-                    var result = await _mediator.Send(new ScanSubject());
-                    if(result.IsSuccess)
-                        return Ok("Scanning...");
+                    var result = await _mediator.Send(new ScanSubject(string.Empty));
+                    if (result.IsSuccess)
+                        return Ok("Resume Scan STARTED");
+
+                    throw new Exception(result.Error);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(ScanSubject)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
+
+        [HttpPost("Inter/Scan")]
+        public async Task<ActionResult> InterScan([FromBody] ScanDto command)
+        {
+
+            if (null == command)
+                return BadRequest();
+
+            try
+            {
+                if (command.AllSites)
+                {
+                    var blockResult = await _mediator.Send(new BlockSubject(ScanLevel.InterSite));
+
+                    if (blockResult.IsFailure)
+                        throw new Exception(blockResult.Error);
+
+                    var result = await _mediator.Send(new ScanSubject(blockResult.Value, ScanLevel.InterSite));
+
+                    if (result.IsSuccess)
+                        return Ok("Scan STARTED");
+
+                    throw new Exception(result.Error);
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(ScanSubject)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
+
+        [HttpPost("Inter/ResumeScan")]
+        public async Task<ActionResult> InterResumeScan([FromBody] ScanDto command)
+        {
+
+            if (null == command)
+                return BadRequest();
+
+            try
+            {
+                if (command.AllSites)
+                {
+                    var result = await _mediator.Send(new ScanSubject(string.Empty, ScanLevel.InterSite));
+                    if (result.IsSuccess)
+                        return Ok("Resume Scan STARTED");
 
                     throw new Exception(result.Error);
                 }

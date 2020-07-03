@@ -19,7 +19,9 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
     {
         public Task Handle(IndexRefreshed notification, CancellationToken cancellationToken)
         {
+            Log.Debug(new string('*',40));
             Log.Debug($"{nameof(IndexRefreshed)}:{notification.Count} site(s)");
+            Log.Debug(new string('*',40));
             return Task.CompletedTask;
         }
     }

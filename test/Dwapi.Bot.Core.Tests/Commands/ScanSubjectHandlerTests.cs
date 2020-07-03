@@ -24,8 +24,8 @@ namespace Dwapi.Bot.Core.Tests.Commands
         {
             TestInitializer.ClearDb();
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
-            var refreshResult=_mediator.Send(new RefreshIndex(100)).Result;
-            var command = new BlockIndex();
+            var refreshResult=_mediator.Send(new RefreshIndex(100,string.Empty)).Result;
+            var command = new BlockSubject();
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             Assert.True(refreshResult.IsSuccess);
@@ -40,7 +40,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_PKV_Site()
         {
-            var command = new ScanSubject(ScanLevel.Site);
+            var command = new ScanSubject(string.Empty,ScanLevel.Site);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();
@@ -53,7 +53,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_Serial_Site()
         {
-            var command = new ScanSubject(ScanLevel.Site, SubjectField.Serial);
+            var command = new ScanSubject(string.Empty,ScanLevel.Site, SubjectField.Serial);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var indices    = Indices().Where(x => x.SiteCode == 13165).ToList();
@@ -65,7 +65,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_PKV_Inter_Site()
         {
-            var command = new ScanSubject(ScanLevel.InterSite);
+            var command = new ScanSubject(string.Empty,ScanLevel.InterSite);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var scores = Indices().SelectMany(x => x.IndexScores).ToList();
@@ -76,7 +76,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Scan_Serial_Inter_Site()
         {
-            var command = new ScanSubject(ScanLevel.InterSite,SubjectField.Serial);
+            var command = new ScanSubject(string.Empty,ScanLevel.InterSite,SubjectField.Serial);
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
             var scores = Indices().SelectMany(x => x.IndexScores).ToList();

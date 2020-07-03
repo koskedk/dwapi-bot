@@ -30,7 +30,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Refresh()
         {
-            var command = new RefreshIndex(5);
+            var command = new RefreshIndex(5,string.Empty);
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);

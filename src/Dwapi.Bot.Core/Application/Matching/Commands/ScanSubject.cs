@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,14 +19,17 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
     public class ScanSubject : IRequest<Result>
     {
+        public string JobId { get;  }
         public ScanLevel Level { get; }
         public int Size { get; }
         public int BlockSize { get; }
         public SubjectField Field { get; }
 
-        public ScanSubject(ScanLevel level = ScanLevel.Site, SubjectField field = SubjectField.PKV, int size = 500,
+        public ScanSubject(string jobId, ScanLevel level = ScanLevel.Site, SubjectField field = SubjectField.PKV, int size = 500,
             int blockSize = 500)
         {
+            Level = level;
+            JobId = jobId;
             Size = size;
             BlockSize = blockSize;
             Field = field;
@@ -64,22 +68,36 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
 
                 int blockCount = 1;
                 Log.Debug($"Scanning blocks {siteBlocks.Count}...");
-                var tasks = new List<Task>();
 
-                BatchJob.StartNew(x =>
+                string jobId;
+                if (string.IsNullOrWhiteSpace(request.JobId))
                 {
-                    foreach (var siteBlock in siteBlocks)
+                     jobId= BatchJob.StartNew(x =>
                     {
-                    
-                        x.Enqueue(() => CreateTask(request, siteBlock, blockCount, siteBlocks.Count, configs,
-                            cancellationToken));
-                        blockCount++;
-                    }
+                        foreach (var siteBlock in siteBlocks)
+                        {
+                            var count = blockCount;
+                            x.Enqueue(() => CreateTask(request, siteBlock, count, siteBlocks.Count, configs));
+                            blockCount++;
+                        }
 
-                });
+                    });
+                }
+                else
+                {
+                    jobId = BatchJob.ContinueBatchWith(request.JobId, x =>
+                    {
+                        foreach (var siteBlock in siteBlocks)
+                        {
+                            var count = blockCount;
+                            x.Enqueue(() => CreateTask(request, siteBlock, count, siteBlocks.Count, configs));
+                            blockCount++;
+                        }
 
+                    });
+                }
 
-
+                Log.Debug($"Scanning scheduled {jobId}...");
                 return Result.Ok();
             }
             catch (Exception e)
@@ -89,8 +107,9 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
             }
         }
 
+        [DisplayName("Scanning {2}/{3}")]
         public async Task CreateTask(ScanSubject request, Guid siteBlock, int blockCount, int siteBlocksCount,
-            List<MatchConfig> configs, CancellationToken cancellationToken)
+            List<MatchConfig> configs)
         {
             // Log.Debug($"Scanning {request.Level} Block {blockCount}/{siteBlocksCount}...");
 
@@ -130,11 +149,9 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 page++;
             }
 
-            await _mediator.Publish(new BlockScanned(siteBlock, request.Level, ScanStatus.Scanned),
-                cancellationToken);
+            await _mediator.Publish(new BlockScanned(siteBlock, request.Level, ScanStatus.Scanned));
 
-            await _mediator.Publish(new BlockUpdated(request.Level),
-                cancellationToken);
+            // await _mediator.Publish(new BlockUpdated(request.Level));
         }
     }
 }

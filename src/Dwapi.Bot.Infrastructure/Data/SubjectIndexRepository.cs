@@ -332,7 +332,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             var sql =
                 $@"SELECT DISTINCT {nameof(SubjectIndex.InterSiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.InterSiteBlockStatus)}=@status AND {nameof(SubjectIndex.InterSiteBlockId)} IS NOT NULL";
 
-            return await GetConnection().QueryAsync<Guid>(sql);
+            return await GetConnection().QueryAsync<Guid>(sql,new {status});
         }
 
         public async Task UpdateScan(Guid notificationId, ScanLevel notificationLevel,ScanStatus status)
@@ -343,7 +343,9 @@ namespace Dwapi.Bot.Infrastructure.Data
               where {nameof(SubjectIndex.SiteBlockId)}=@notificationId";
 
             if (notificationLevel==ScanLevel.InterSite)
-                sql = sql.Replace(nameof(SubjectIndex.SiteBlockId),nameof(SubjectIndex.InterSiteBlockId));
+                sql = sql
+                    .Replace(nameof(SubjectIndex.SiteBlockId), nameof(SubjectIndex.InterSiteBlockId))
+                    .Replace(nameof(SubjectIndex.SiteBlockStatus), nameof(SubjectIndex.InterSiteBlockStatus));
 
 
             using (var cn = GetConnectionOnly())

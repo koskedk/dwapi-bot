@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,18 +44,29 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 var jobId = BatchJob.StartNew(x =>
                 {
-                    foreach (var site in subjectSites)
+                    if (!subjectSites.Any())
                     {
-                        x.Enqueue(() => CreateTask(site));
+                        x.Enqueue(() => Log.Debug("NO SITES"));
                     }
+                    else
+                    {
+                        int count = 1;
+                        foreach (var site in subjectSites)
+                        {
+                            var index = count;
+                            x.Enqueue(() => CreateTask(site, index, subjectSites.Count));
+                            count++;
+                        }
+                    }
+
                 });
 
-                var id = BatchJob.ContinueBatchWith(jobId,
+                BatchJob.ContinueBatchWith(jobId,
                     x => { x.Enqueue(() => SendNotification(subjectSites.Count)); });
 
                 Log.Debug($"clearing index scheduled {jobId}");
 
-                return Result.Ok(id);
+                return Result.Ok(jobId);
             }
             catch (Exception e)
             {
@@ -63,7 +75,8 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             }
         }
 
-        public async Task CreateTask(SubjectSiteDto siteDto)
+        [DisplayName("Clearing {0} {1}/{2} ")]
+        public async Task CreateTask(SubjectSiteDto siteDto,int count,int total)
         {
             await _repository.Clear(siteDto.SiteCode);
             await _mediator.Publish(new IndexSiteCleared(siteDto));

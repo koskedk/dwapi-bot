@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,18 +58,34 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                 int siteCount = 1;
                 var tasks = new List<Task>();
+                string jobId;
 
-                var jobId = BatchJob.ContinueBatchWith(request.JobId,x =>
+                if (string.IsNullOrWhiteSpace(request.JobId))
                 {
-                    foreach (var mpiSite in mpiSites)
+                    jobId = BatchJob.StartNew(x =>
                     {
-                        var count = siteCount;
-                        x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
-                        siteCount++;
-                    }
-                });
+                        foreach (var mpiSite in mpiSites)
+                        {
+                            var count = siteCount;
+                            x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
+                            siteCount++;
+                        }
+                    });
+                }
+                else
+                {
+                    jobId = BatchJob.ContinueBatchWith(request.JobId, x =>
+                    {
+                        foreach (var mpiSite in mpiSites)
+                        {
+                            var count = siteCount;
+                            x.Enqueue(() => CreateTask(request, mpiSite, count, mpiSites.Count, cancellationToken));
+                            siteCount++;
+                        }
+                    });
+                }
 
-                var id = BatchJob.ContinueBatchWith(jobId,
+                BatchJob.ContinueBatchWith(jobId,
                     x => { x.Enqueue(() => SendNotification(mpiSites.Count)); });
 
                 Log.Debug($"refreshing scheduled [{jobId}]");
@@ -82,6 +99,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             }
         }
 
+        [DisplayName("Refreshing {1} {2}/{3}")]
         public async Task CreateTask(RefreshIndex request, SubjectSiteDto mpiSite, int siteCount, int totalSites,
             CancellationToken cancellationToken)
         {

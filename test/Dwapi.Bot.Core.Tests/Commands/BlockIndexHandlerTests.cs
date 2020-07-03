@@ -1,4 +1,5 @@
 using Dwapi.Bot.Core.Application.Indices.Commands;
+using Dwapi.Bot.Core.Application.Matching.Commands;
 using Dwapi.Bot.Core.Tests.TestArtifacts;
 using Dwapi.Bot.Infrastructure;
 using Dwapi.Bot.SharedKernel.Enums;
@@ -9,7 +10,7 @@ using NUnit.Framework;
 namespace Dwapi.Bot.Core.Tests.Commands
 {
     [TestFixture]
-    public class BlockIndexHandlerTests
+    public class BlockSubjectHandlerTests
     {
         private IMediator _mediator;
         private BotContext _context;
@@ -30,7 +31,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Block()
         {
-            var command = new BlockIndex();
+            var command = new BlockSubject();
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
@@ -39,7 +40,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         [Test]
         public void should_Block_Inter()
         {
-            var command = new BlockIndex(ScanLevel.InterSite);
+            var command = new BlockSubject(ScanLevel.InterSite);
 
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
