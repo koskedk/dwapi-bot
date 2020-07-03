@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  dwapi:
+    image: kenyahmis/dwapibot:latest
+    build:
+      context: .
+      dockerfile: src/Dwapi.Bot/Dockerfile
+    ports:
+      - "8787:5000"
+      - "8783:5001"
+    restart: unless-stopped
