@@ -38,7 +38,16 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
         {
             if (_setting.WorkflowEnabled)
             {
-                _mediator.Send(new BlockIndex(notification.JobId, notification.Level), cancellationToken);
+                if (notification.Level == ScanLevel.Both)
+                {
+                    _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.Site), cancellationToken);
+                    _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.InterSite), cancellationToken);
+                }
+                else
+                {
+                    _mediator.Send(new BlockIndex(notification.JobId, notification.Level), cancellationToken);
+                }
+
             }
 
             return Task.CompletedTask;
@@ -48,7 +57,22 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
         {
             if (_setting.WorkflowEnabled)
             {
-                _mediator.Send(new ScanIndex(notification.JobId,notification.Level,SubjectField.PKV,_setting.BlockSize), cancellationToken);
+                if (notification.Level == ScanLevel.Both)
+                {
+                    _mediator.Send(
+                        new ScanIndex(notification.JobId, ScanLevel.Site, SubjectField.PKV, _setting.BlockSize),
+                        cancellationToken);
+
+                    _mediator.Send(
+                        new ScanIndex(notification.JobId, ScanLevel.InterSite, SubjectField.PKV, _setting.BlockSize),
+                        cancellationToken);
+                }
+                else
+                {
+                    _mediator.Send(
+                        new ScanIndex(notification.JobId, notification.Level, SubjectField.PKV, _setting.BlockSize),
+                        cancellationToken);
+                }
             }
 
             return Task.CompletedTask;

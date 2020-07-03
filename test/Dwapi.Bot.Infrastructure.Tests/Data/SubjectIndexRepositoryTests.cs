@@ -30,7 +30,8 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         {
             _repository = TestInitializer.ServiceProvider.GetService<ISubjectIndexRepository>();
         }
-        [Test,Order(1)]
+
+        [Test, Order(1)]
         public void should_Get_All()
         {
             var subjects = _repository.GetAllSubjects().Result.ToList();
@@ -38,21 +39,23 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Log.Debug($"{subjects.Count} Records");
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_Count()
         {
             var count = _repository.GetRecordCount().Result;
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
-        [Test,Order(1)]
+
+        [Test, Order(1)]
         public void should_Get_Site_Count()
         {
-            var count = _repository.GetRecordCount(ScanLevel.Site,"13165").Result;
+            var count = _repository.GetRecordCount(ScanLevel.Site, "13165").Result;
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
-        [Test,Order(1)]
+
+        [Test, Order(1)]
         public void should_Get_Site_Block_Count()
         {
             Guid blockId = _subjectIndices.First().SiteBlockId.Value;
@@ -60,7 +63,8 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
-        [Test,Order(1)]
+
+        [Test, Order(1)]
         public void should_Get_InterSite_Block_Count()
         {
             Guid blockId = _subjectIndices.First().InterSiteBlockId.Value;
@@ -68,7 +72,8 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
-        [Test,Order(1)]
+
+        [Test, Order(1)]
         public void should_Read_Paged()
         {
             var top5 = _repository.Read(1, 5).Result.ToList();
@@ -95,7 +100,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             var bySitePg1 = _repository.Read(1, 5, ScanLevel.Site, blockId).Result.ToList();
             Assert.True((bySitePg1.Count == 5));
             var bySitePg2 = _repository.Read(2, 5, ScanLevel.Site, blockId).Result.ToList();
-            Assert.True((bySitePg2.Count == 5));
+            Assert.True((bySitePg2.Count > 0));
         }
 
         [Test, Order(1)]
@@ -105,22 +110,22 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             var bySitePg1 = _repository.Read(1, 5, ScanLevel.InterSite, blockId).Result.ToList();
             Assert.True((bySitePg1.Count == 5));
             var bySitePg2 = _repository.Read(2, 5, ScanLevel.InterSite, blockId).Result.ToList();
-            Assert.True((bySitePg2.Count == 5));
+            Assert.True((bySitePg2.Count > 0));
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_Block_Count()
         {
             // 2 F 1996 13165
             var subject = TestData.GenerateSubject();
 
-            var count = _repository.GetBlockRecordCount(subject,ScanLevel.Site).Result;
+            var count = _repository.GetBlockRecordCount(subject, ScanLevel.Site).Result;
             Assert.True((count > 0));
             Log.Debug($"{count} Records");
         }
 
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_Block_Record_Count()
         {
             // 2 F 1996 13165
@@ -132,14 +137,14 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         }
 
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Read_Block_Paged()
         {
             // 2 F 1996 13165
             var subject = TestData.GenerateSubject();
 
-            var data = _repository.ReadBlock(1,5,subject,ScanLevel.Site).Result;
-            Assert.True(data.Count>0);
+            var data = _repository.ReadBlock(1, 5, subject, ScanLevel.Site).Result;
+            Assert.True(data.Count > 0);
         }
 
         [Test, Order(1)]
@@ -156,7 +161,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True(data == 2);
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Save_Scores()
         {
             var scores = TestData.GenerateSubjectScores(_subjectIndices.First().Id);
@@ -170,7 +175,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True(data == 2);
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Save_Stages()
         {
             var stages = TestData.GenerateSubjectStages(_subjectIndices.First().Id);
@@ -184,7 +189,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             Assert.True(data == 2);
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_SubjectSites()
         {
             var sites = _repository.GetSubjectSiteDtos().Result.ToList();
@@ -193,7 +198,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
                 Log.Debug($"{site}");
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_SubjectInterSiteBlock()
         {
             var sites = _repository.GetSubjectInterSiteBlockDtos().Result.ToList();
@@ -202,7 +207,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
                 Log.Debug($"{site}");
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Get_SubjectSiteBlock()
         {
             var sites = _repository.GetSubjectSiteBlockDtos().Result.ToList();
@@ -211,7 +216,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
                 Log.Debug($"{site}");
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Block_Site_Index()
         {
             var site = _repository.GetSubjectSiteBlockDtos().Result.ToList().First();
@@ -219,12 +224,13 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             _repository.BlockSiteSubjects(site).Wait();
 
             var data = _repository.GetConnection()
-                .Query<SubjectIndex>($"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE SiteBlockId IS NOT NULL");
+                .Query<SubjectIndex>(
+                    $"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE SiteBlockId IS NOT NULL");
 
             Assert.True(data.Any());
         }
 
-        [Test,Order(1)]
+        [Test, Order(1)]
         public void should_Block_Inter_Site_Index()
         {
             var site = _repository.GetSubjectInterSiteBlockDtos().Result.ToList().First();
@@ -232,12 +238,13 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             _repository.BlockInterSiteSubjects(site).Wait();
 
             var data = _repository.GetConnection()
-                .Query<SubjectIndex>($"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE InterSiteBlockId IS NOT NULL");
+                .Query<SubjectIndex>(
+                    $"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE InterSiteBlockId IS NOT NULL");
 
             Assert.True(data.Any());
         }
 
-        [Test,Order(99)]
+        [Test, Order(99)]
         public void should_Clear()
         {
             _repository.Clear().Wait();
@@ -245,7 +252,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             var data = _repository.GetConnection()
                 .ExecuteScalar<int>($"SELECT COUNT(ID) FROM {nameof(BotContext.SubjectIndices)}");
 
-            Assert.True(data==0);
+            Assert.True(data == 0);
         }
 
     }

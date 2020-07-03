@@ -21,6 +21,7 @@ namespace Dwapi.Bot.Core.Domain.Indices
         Task<List<SubjectIndex>> ReadBlock(int page, int pageSize, SubjectIndex subject, ScanLevel level);
         Task Clear();
         Task Clear(int siteCode);
+        Task Clear(int siteCode,ScanLevel level);
         Task CreateOrUpdate(IEnumerable<SubjectIndex> indices);
 
         Task CreateOrUpdateScores(IEnumerable<SubjectIndexScore> scores);

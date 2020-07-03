@@ -22,8 +22,13 @@ namespace Dwapi.Bot.Controllers
         [HttpPost("Scan")]
         public async Task<ActionResult> Post([FromBody] ScanDto command)
         {
-            if (command.Level < 0 || command.Level > 1)
-                return BadRequest();
+            if (command.Level < 0 || command.Level > 2)
+                return BadRequest(
+                    new
+                    {
+                        Status = "Unknown Scan Level, Allowed only 0 Site,1 InterSite,2 Both",
+                        Date = DateTime.Now
+                    });
 
             try
             {

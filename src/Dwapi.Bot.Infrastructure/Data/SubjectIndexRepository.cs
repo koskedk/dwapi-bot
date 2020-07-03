@@ -214,6 +214,11 @@ namespace Dwapi.Bot.Infrastructure.Data
             }
         }
 
+        public Task Clear(int siteCode, ScanLevel level)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task CreateOrUpdate(IEnumerable<SubjectIndex> indices)
         {
             return CreateOrUpdateAsync<SubjectIndex, Guid>(indices);
