@@ -1,21 +1,22 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot.Core", "src\Dwapi.Bot.Core\Dwapi.Bot.Core.csproj", "{6FC87490-4331-4472-A012-C5FEC444BB2E}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dwapi.Bot.Core", "src\Dwapi.Bot.Core\Dwapi.Bot.Core.csproj", "{6FC87490-4331-4472-A012-C5FEC444BB2E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot.Core.Tests", "test\Dwapi.Bot.Core.Tests\Dwapi.Bot.Core.Tests.csproj", "{30E57A90-77C3-4C6B-88E3-55D39F1CF874}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dwapi.Bot.Core.Tests", "test\Dwapi.Bot.Core.Tests\Dwapi.Bot.Core.Tests.csproj", "{30E57A90-77C3-4C6B-88E3-55D39F1CF874}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{23242EE0-4BC2-4E87-9AA4-9678DF2DA358}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot.Infrastructure", "src\Dwapi.Bot.Infrastructure\Dwapi.Bot.Infrastructure.csproj", "{A8BF520F-EEE5-4A0D-A098-B8727CCB97E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dwapi.Bot.Infrastructure", "src\Dwapi.Bot.Infrastructure\Dwapi.Bot.Infrastructure.csproj", "{A8BF520F-EEE5-4A0D-A098-B8727CCB97E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{E9E02D22-F84E-4CC7-8331-881638BAFDED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot.Infrastructure.Tests", "test\Dwapi.Bot.Infrastructure.Tests\Dwapi.Bot.Infrastructure.Tests.csproj", "{BED63CF4-B7E9-45C9-A727-8EF1D11E89E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dwapi.Bot.Infrastructure.Tests", "test\Dwapi.Bot.Infrastructure.Tests\Dwapi.Bot.Infrastructure.Tests.csproj", "{BED63CF4-B7E9-45C9-A727-8EF1D11E89E6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedKernel", "SharedKernel", "{BB1786B4-C4DF-45B1-9759-1E2FC50B9602}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot.SharedKernel", "src\Dwapi.Bot.SharedKernel\Dwapi.Bot.SharedKernel.csproj", "{2AB62577-E799-45F9-9049-1BEFA45CBCFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dwapi.Bot.SharedKernel", "src\Dwapi.Bot.SharedKernel\Dwapi.Bot.SharedKernel.csproj", "{2AB62577-E799-45F9-9049-1BEFA45CBCFB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dwapi.Bot", "src\Dwapi.Bot\Dwapi.Bot.csproj", "{A0A1CC89-C3F7-4F92-8555-83A3E80B5A18}"
 EndProject
@@ -52,12 +53,18 @@ Global
 		{A0A1CC89-C3F7-4F92-8555-83A3E80B5A18}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0A1CC89-C3F7-4F92-8555-83A3E80B5A18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6FC87490-4331-4472-A012-C5FEC444BB2E} = {23242EE0-4BC2-4E87-9AA4-9678DF2DA358}
 		{30E57A90-77C3-4C6B-88E3-55D39F1CF874} = {23242EE0-4BC2-4E87-9AA4-9678DF2DA358}
-		{BED63CF4-B7E9-45C9-A727-8EF1D11E89E6} = {E9E02D22-F84E-4CC7-8331-881638BAFDED}
 		{A8BF520F-EEE5-4A0D-A098-B8727CCB97E9} = {E9E02D22-F84E-4CC7-8331-881638BAFDED}
+		{BED63CF4-B7E9-45C9-A727-8EF1D11E89E6} = {E9E02D22-F84E-4CC7-8331-881638BAFDED}
 		{2AB62577-E799-45F9-9049-1BEFA45CBCFB} = {BB1786B4-C4DF-45B1-9759-1E2FC50B9602}
 		{A0A1CC89-C3F7-4F92-8555-83A3E80B5A18} = {D55D7B2F-CC13-4A34-9E38-F49A8328A309}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E416A1E4-68E8-4C5E-B334-799055982AFD}
 	EndGlobalSection
 EndGlobal
