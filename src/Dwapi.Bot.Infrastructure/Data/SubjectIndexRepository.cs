@@ -79,7 +79,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             {
                 if (cn.State != ConnectionState.Open)
                     cn.Open();
-                count = await cn.ExecuteScalarAsync<int>(sql, new {blockId});
+                count = await cn.ExecuteScalarAsync<int>(sql, new {blockId},commandTimeout:0);
             }
 
             return count;
@@ -138,7 +138,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     blockId,
                     Offset = (page - 1) * pageSize,
                     PageSize = pageSize
-                });
+                },commandTimeout:0);
             }
             return records;
         }
@@ -154,7 +154,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (level==ScanLevel.InterSite)
                 sql = sql.Replace(nameof(SubjectIndex.SiteBlockId),nameof(SubjectIndex.InterSiteBlockId));
 
-            var results = await GetConnection().ExecuteScalarAsync<int>(sql);
+            var results = await GetConnection().ExecuteScalarAsync<int>(sql,commandTimeout:0);
             return results;
         }
 
@@ -199,7 +199,7 @@ namespace Dwapi.Bot.Infrastructure.Data
 
             var sql = $"DELETE FROM {nameof(BotContext.SubjectIndices)}";
 
-            var count = await GetConnection().ExecuteAsync(sql);
+            var count = await GetConnection().ExecuteAsync(sql,commandTimeout:0);
         }
 
         public async Task Clear(int siteCode)
@@ -210,7 +210,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     cn.Open();
                 var sql =
                     $"DELETE FROM {nameof(BotContext.SubjectIndices)} Where {nameof(SubjectIndex.SiteCode)}=@siteCode";
-                await cn.ExecuteAsync(sql, new {siteCode});
+                await cn.ExecuteAsync(sql, new {siteCode},commandTimeout:0);
             }
         }
 
@@ -240,7 +240,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                 $@"SELECT DISTINCT {nameof(SubjectSiteDto.SiteCode)},MAX({nameof(SubjectSiteDto.FacilityName)}) FacilityName  
                                 FROM {nameof(BotContext.SubjectIndices)} GROUP BY SiteCode";
 
-            return await GetConnection().QueryAsync<SubjectSiteDto>(sql);
+            return await GetConnection().QueryAsync<SubjectSiteDto>(sql,commandTimeout:0);
         }
 
         public async Task<IEnumerable<SubjectBlockDto>> GetSubjectInterSiteBlockDtos()
@@ -257,7 +257,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"strftime('%Y',DOB)");
 
-            return await GetConnection().QueryAsync<SubjectBlockDto>(sql);
+            return await GetConnection().QueryAsync<SubjectBlockDto>(sql,commandTimeout:0);
         }
 
         public async Task<IEnumerable<SubjectBlockDto>> GetSubjectSiteBlockDtos()
@@ -273,7 +273,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"strftime('%Y',DOB)");
 
-            return await GetConnection().QueryAsync<SubjectBlockDto>(sql);
+            return await GetConnection().QueryAsync<SubjectBlockDto>(sql,commandTimeout:0);
         }
 
         public async Task BlockInterSiteSubjects(SubjectBlockDto blockDto)
@@ -295,7 +295,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     {
                         year = blockDto.BirthYear, gender = blockDto.Gender,
                         blockId = LiveGuid.NewGuid()
-                    });
+                    },commandTimeout:0);
             }
         }
 
@@ -318,7 +318,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     {
                         year = blockDto.BirthYear, gender = blockDto.Gender, siteCode = blockDto.SiteCode,
                         blockId = LiveGuid.NewGuid()
-                    });
+                    },commandTimeout:0);
             }
         }
 
@@ -327,7 +327,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             var sql =
                 $@"SELECT DISTINCT {nameof(SubjectIndex.SiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockStatus)}=@status AND {nameof(SubjectIndex.SiteBlockId)} IS NOT NULL ";
 
-            var results=await GetConnection().QueryAsync<Guid>(sql,new {status});
+            var results=await GetConnection().QueryAsync<Guid>(sql,new {status},commandTimeout:0);
             return results;
         }
 
@@ -336,7 +336,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             var sql =
                 $@"SELECT DISTINCT {nameof(SubjectIndex.InterSiteBlockId)} FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.InterSiteBlockStatus)}=@status AND {nameof(SubjectIndex.InterSiteBlockId)} IS NOT NULL";
 
-            return await GetConnection().QueryAsync<Guid>(sql,new {status});
+            return await GetConnection().QueryAsync<Guid>(sql,new {status},commandTimeout:0);
         }
 
         public async Task UpdateScan(Guid notificationId, ScanLevel notificationLevel,ScanStatus status)
@@ -360,7 +360,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     new
                     {
                         status,notificationId
-                    });
+                    },commandTimeout:0);
             }
         }
     }

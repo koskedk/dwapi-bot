@@ -30,7 +30,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             using (var con = GetConnection())
             {
                 con.Open();
-                count = await con.ExecuteScalarAsync<int>(sql);
+                count = await con.ExecuteScalarAsync<int>(sql,commandTimeout:0);
             }
 
             return count;
@@ -45,7 +45,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             using (var con = GetConnection())
             {
                 con.Open();
-                count = await con.ExecuteScalarAsync<int>(sql,new {siteCode});
+                count = await con.ExecuteScalarAsync<int>(sql,new {siteCode},commandTimeout:0);
             }
             return count;
         }
@@ -60,7 +60,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
                 sql = sql.Replace("ISNULL", "IFNULL");
 
-            return await  GetConnection().QueryAsync<SubjectSiteDto>(sql);
+            return await  GetConnection().QueryAsync<SubjectSiteDto>(sql,commandTimeout:0);
         }
 
         public async Task<IEnumerable<MasterPatientIndex>> Read(int page, int pageSize)
@@ -92,7 +92,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                 {
                     Offset = (page - 1) * pageSize,
                     PageSize = pageSize
-                });
+                },commandTimeout:0);
             }
 
             return records;
@@ -128,7 +128,7 @@ namespace Dwapi.Bot.Infrastructure.Data
                     siteCode,
                     Offset = (page - 1) * pageSize,
                     PageSize = pageSize
-                });
+                },commandTimeout:0);
             }
 
             return records;
