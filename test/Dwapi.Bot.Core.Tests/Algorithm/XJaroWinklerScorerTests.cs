@@ -7,17 +7,17 @@ using Serilog;
 namespace Dwapi.Bot.Core.Tests.Algorithm
 {
     [TestFixture]
-    public class JaroWinklerScorerTests
+    public class XJaroWinklerScorerTests
     {
         private IJaroWinklerScorer _jaroWinkler;
         [SetUp]
         public void SetUp()
         {
-            _jaroWinkler = TestInitializer.ServiceProvider.GetService<IJaroWinklerScorer>();
+            _jaroWinkler = new XJaroWinklerScorer();
         }
         [TestCase("maun","maun")]
         [TestCase("mAun","mauN")]
-        [TestCase("maun","Baun")]
+        [TestCase("MARTHA","MATHRA")]
         public void should_Generate(string a,string b)
         {
             var score = _jaroWinkler.Generate(a, b);
