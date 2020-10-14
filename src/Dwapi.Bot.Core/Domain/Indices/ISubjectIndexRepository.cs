@@ -19,6 +19,7 @@ namespace Dwapi.Bot.Core.Domain.Indices
         Task<int> GetBlockRecordCount( ScanLevel level);
         Task<int> GetBlockRecordCount(SubjectIndex subject, ScanLevel level);
         Task<List<SubjectIndex>> ReadBlock(int page, int pageSize, SubjectIndex subject, ScanLevel level);
+        Task InitClear();
         Task Clear();
         Task Clear(int siteCode);
         Task Clear(int siteCode,ScanLevel level);

@@ -193,6 +193,18 @@ namespace Dwapi.Bot.Infrastructure.Data
                 .ToListAsync();
         }
 
+        public async Task InitClear()
+        {
+            //init clear
+
+            var sql = $@"
+            TRUNCATE TABLE {nameof(BotContext.SubjectIndexScores)};
+            TRUNCATE TABLE {nameof(BotContext.SubjectIndexStages)};
+            ";
+
+            var count = await GetConnection().ExecuteAsync(sql,commandTimeout:0);
+        }
+
         public async Task Clear()
         {
             //clear

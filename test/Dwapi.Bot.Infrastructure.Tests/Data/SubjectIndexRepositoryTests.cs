@@ -243,6 +243,20 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
 
             Assert.True(data.Any());
         }
+        
+        [Test, Order(98)]
+        public void should_InitClear()
+        {
+            _repository.InitClear().Wait();
+
+            var data1 = _repository.GetConnection()
+                .ExecuteScalar<int>($"SELECT COUNT(ID) FROM {nameof(BotContext.SubjectIndexScores)}");
+            
+            var data2 = _repository.GetConnection()
+                .ExecuteScalar<int>($"SELECT COUNT(ID) FROM {nameof(BotContext.SubjectIndexStages)}");
+
+            Assert.True((ata1+data2) == 0);
+        }
 
         [Test, Order(99)]
         public void should_Clear()

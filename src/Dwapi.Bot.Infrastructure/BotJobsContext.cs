@@ -10,5 +10,14 @@ namespace Dwapi.Bot.Infrastructure
         public BotJobsContext(DbContextOptions<BotJobsContext> options) : base(options)
         {
         }
+        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Manifest>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+            });
+        }
     }
 }

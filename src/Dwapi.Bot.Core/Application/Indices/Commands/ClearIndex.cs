@@ -48,8 +48,22 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 await _mediator.Publish(
                     new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),
                     cancellationToken);
+                
+                var initJobId = BatchJob.StartNew(x =>
+                {
+                    if (!subjectSites.Any())
+                    {
+                        x.Enqueue(() => Log.Debug("NO SITES"));
+                    }
+                    else
+                    {
+                        x.Enqueue(() => CreateInitTask());
+                    }
 
-                var mainJobId = BatchJob.StartNew(x =>
+                },$"Initializing {nameof(ClearIndex)} {request.Level}");
+                
+
+                var mainJobId = BatchJob.ContinueBatchWith(initJobId,x =>
                 {
                     if (!subjectSites.Any())
                     {
@@ -82,6 +96,13 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 return Result.Failure<string>(e.Message);
             }
         }
+        
+        [DisplayName("Initializing Clearing")]
+        public async Task CreateInitTask()
+        {
+            await _repository.InitClear();
+
+        }
 
         [DisplayName("Clearing {0} {1}/{2} ")]
         public async Task CreateTask(SubjectSiteDto siteDto,int count,int total)
@@ -90,7 +111,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             await _mediator.Publish(new IndexSiteCleared(siteDto));
 
         }
-
+        
         public async Task SendNotification(int count,string jobId,ScanLevel level)
         {
             await _mediator.Publish(new IndexCleared(count,jobId,level));
