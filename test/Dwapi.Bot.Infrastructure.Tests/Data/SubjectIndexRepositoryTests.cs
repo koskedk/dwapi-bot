@@ -255,7 +255,7 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
             var data2 = _repository.GetConnection()
                 .ExecuteScalar<int>($"SELECT COUNT(ID) FROM {nameof(BotContext.SubjectIndexStages)}");
 
-            Assert.True((ata1+data2) == 0);
+            Assert.True((data1+data2) == 0);
         }
 
         [Test, Order(99)]

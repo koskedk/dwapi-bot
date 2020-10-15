@@ -113,7 +113,7 @@ namespace Dwapi.Bot.Infrastructure.Data
             page = page < 0 ? 1 : page;
             pageSize = pageSize < 0 ? 1 : pageSize;
 
-            var sql = @$"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockId)}=@blockId ORDER BY RowId";
+            var sql = $@"SELECT * FROM {nameof(BotContext.SubjectIndices)} WHERE {nameof(SubjectIndex.SiteBlockId)}=@blockId ORDER BY RowId";
 
             if (level == ScanLevel.InterSite)
                 sql = sql.Replace(nameof(SubjectIndex.SiteBlockId), nameof(SubjectIndex.InterSiteBlockId));

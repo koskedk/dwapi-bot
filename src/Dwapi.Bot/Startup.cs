@@ -75,11 +75,14 @@ namespace Dwapi.Bot
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
                     SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                    QueuePollInterval = TimeSpan.Zero,
+                    QueuePollInterval = TimeSpan.FromMilliseconds(100),
                     UseRecommendedIsolationLevel = true,
                     UsePageLocksOnDequeue = true,
                     DisableGlobalLocks = true
-                }));
+                })
+                .UseSerilogLogProvider()
+            
+            );
 
             //add hangfire server 1
             services.AddHangfireServer(x => x.ServerName = "Server 1");
@@ -116,7 +119,11 @@ namespace Dwapi.Bot
             app.UseStaticFiles();
             app.UseRouting();
 
-            app.UseHangfireDashboard("/hangfire");
+            app.UseHangfireDashboard("/hangfire",new DashboardOptions()
+            {
+                StatsPollingInterval = 600000,
+                DashboardTitle = "Dwapi.BOT"
+            });
             GlobalConfiguration.Configuration.UseBatches();
 
             app.UseEndpoints(endpoints =>
