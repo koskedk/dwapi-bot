@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <None Remove="Seed\MatchConfig.csv" />
+    <EmbeddedResource Include="Seed\DataSet.csv" />
     <EmbeddedResource Include="Seed\MatchConfig.csv" />
   </ItemGroup>
 
