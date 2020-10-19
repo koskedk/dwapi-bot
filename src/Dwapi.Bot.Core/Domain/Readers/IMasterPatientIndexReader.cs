@@ -11,6 +11,7 @@ namespace Dwapi.Bot.Core.Domain.Readers
         Task<int> GetRecordCount();
         Task<int> GetRecordCount(int siteCode);
         Task<IEnumerable<SubjectSiteDto>> GetMpiSites();
+        Task<IEnumerable<SubjectSiteDto>> GetMpiSites(string dataset);
         Task<IEnumerable<MasterPatientIndex>> Read(int page, int pageSize);
         Task<IEnumerable<MasterPatientIndex>> Read(int page, int pageSize,int siteCode);
     }

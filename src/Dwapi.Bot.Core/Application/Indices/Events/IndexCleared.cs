@@ -12,13 +12,15 @@ namespace Dwapi.Bot.Core.Application.Indices.Events
         public ScanLevel Level { get; }
         public int TotalSites { get; }
         public string JobId { get; }
+        public string Dataset { get; set; }
         public DateTime Date => DateTime.Now;
 
-        public IndexCleared(int totalSites, string jobId, ScanLevel level)
+        public IndexCleared(int totalSites, string jobId, ScanLevel level, string dataset)
         {
             TotalSites = totalSites;
             JobId = jobId;
             Level = level;
+            Dataset = dataset;
         }
 
         public override string ToString()

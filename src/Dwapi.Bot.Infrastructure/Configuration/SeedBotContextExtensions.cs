@@ -14,6 +14,12 @@ namespace Dwapi.Bot.Infrastructure.Configuration
                 context.AddRange(data);
             }
 
+            if (!context.DataSets.Any())
+            {
+                var data = SeedDataReader.ReadCsv<DataSet>(typeof(BotContext).Assembly,"Seed","|");
+                context.AddRange(data);
+            }
+
             context.SaveChanges();
         }
     }

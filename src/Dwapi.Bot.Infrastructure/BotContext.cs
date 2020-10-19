@@ -12,6 +12,8 @@ namespace Dwapi.Bot.Infrastructure
         public DbSet<SubjectIndexStage> SubjectIndexStages { get; set; }
         public DbSet<MatchConfig> MatchConfigs { get; set; }
         public DbSet<BlockStage> BlockStages { get; set; }
+        public DbSet<DataSet> DataSets { get; set; }
+
         public BotContext(DbContextOptions<BotContext> options) : base(options)
         {
         }

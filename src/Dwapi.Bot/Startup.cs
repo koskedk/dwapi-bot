@@ -66,6 +66,7 @@ namespace Dwapi.Bot
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddScoped<IBlockStageRepository, BlockStageRepository>();
+            services.AddScoped<IDataSetRepository, DataSetRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -81,7 +82,7 @@ namespace Dwapi.Bot
                     DisableGlobalLocks = true
                 })
                 .UseSerilogLogProvider()
-            
+
             );
 
             //add hangfire server 1

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.SharedKernel.Enums;
 using FizzWare.NBuilder;
@@ -84,6 +85,13 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
           return stages;
         }
 
+        public static List<DataSet> GenerateDataSets()
+        {
+          var dataSets = new List<DataSet>();
+          dataSets.Add(new DataSet("Siaya","Siaya","SiteCode IN (SELECT SiteCode FROM Facilities WHERE County='Siaya')"));
+          dataSets.Add(new DataSet("Nyanza","Nyanza","SiteCode IN (SELECT SiteCode FROM Facilities WHERE Province='Nyanza')"));
+          return dataSets;
+        }
 
         private static string SubjectsJson()
         {
@@ -346,4 +354,5 @@ namespace Dwapi.Bot.Infrastructure.Tests.TestArtifacts
             return json.Replace("^", @"'");
         }
     }
+
 }

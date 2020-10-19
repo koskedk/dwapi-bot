@@ -1,5 +1,6 @@
 using System.Linq;
 using Dwapi.Bot.Core.Domain.Readers;
+using Dwapi.Bot.Infrastructure.Tests.TestArtifacts;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Serilog;
@@ -42,6 +43,16 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
                 Log.Debug($"{site}");
         }
 
+        [TestCase("Siaya")]
+        [TestCase("Nyanza")]
+        public void should_Get_Mpi_Sites_By_Dataset(string datasetName)
+        {
+            var dataSet = TestData.GenerateDataSets().First(x => x.Name == datasetName);
+            var sites = _reader.GetMpiSites(dataSet.Definition).Result.ToList();
+            Assert.True((sites.Count > 0));
+            foreach (var site in sites)
+                Log.Debug($"{site}");
+        }
 
         [Test]
         public void should_Read_Paged()

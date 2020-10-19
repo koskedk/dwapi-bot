@@ -33,7 +33,7 @@ namespace Dwapi.Bot.Controllers
 
             try
             {
-                var clearJobResult = await _mediator.Send(new ClearIndex((ScanLevel) command.Level));
+                var clearJobResult = await _mediator.Send(new ClearIndex((ScanLevel) command.Level,command.Dataset));
 
                 if (clearJobResult.IsFailure)
                     throw new Exception(clearJobResult.Error);
@@ -53,7 +53,7 @@ namespace Dwapi.Bot.Controllers
                 return StatusCode(500, $"{msg} {e.Message}");
             }
         }
-        
+
         [HttpPost("ReBlock")]
         public async Task<ActionResult> ReBlock([FromBody] ReBlockDto command)
         {

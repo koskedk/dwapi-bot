@@ -1,4 +1,3 @@
-using System.Linq;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Infrastructure.Tests.TestArtifacts;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,9 +7,9 @@ using Serilog;
 namespace Dwapi.Bot.Infrastructure.Tests.Data
 {
     [TestFixture]
-    public class MatchConfigRepositoryTests
+    public class DataSetRepositoryTests
     {
-        private IMatchConfigRepository _repository;
+        private IDataSetRepository _repository;
 
         [OneTimeSetUp]
         public void Init()
@@ -22,15 +21,15 @@ namespace Dwapi.Bot.Infrastructure.Tests.Data
         [SetUp]
         public void SetUp()
         {
-            _repository = TestInitializer.ServiceProvider.GetService<IMatchConfigRepository>();
+            _repository = TestInitializer.ServiceProvider.GetService<IDataSetRepository>();
         }
 
         [Test, Order(1)]
-        public void should_Get_All()
+        public void should_Get_By_Name()
         {
-            var configs = _repository.GetConfigs().ToList();
-            Assert.True(configs.Any());
-            Log.Debug($"{configs.Count} Records");
+            var dataSet = _repository.GetByName("Siaya");
+            Assert.NotNull(dataSet);
+            Log.Debug($"{dataSet.Definition}");
         }
     }
 }

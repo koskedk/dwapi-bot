@@ -63,6 +63,19 @@ namespace Dwapi.Bot.Infrastructure.Data
             return await  GetConnection().QueryAsync<SubjectSiteDto>(sql,commandTimeout:0);
         }
 
+        public async Task<IEnumerable<SubjectSiteDto>> GetMpiSites(string dataset)
+        {
+            var sql = $@"SELECT DISTINCT {nameof(SubjectSiteDto.SiteCode)},MAX({nameof(SubjectSiteDto.FacilityName)}) FacilityName 
+                                FROM MasterPatientIndices
+                                WHERE  Gender<>'U' AND NOT ISNULL(sxdmPKValueDoB,'') = '' AND {dataset} 
+                                GROUP BY SiteCode";
+
+            if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
+                sql = sql.Replace("ISNULL", "IFNULL");
+
+            return await  GetConnection().QueryAsync<SubjectSiteDto>(sql,commandTimeout:0);
+        }
+
         public async Task<IEnumerable<MasterPatientIndex>> Read(int page, int pageSize)
         {
             IEnumerable<MasterPatientIndex> records;

@@ -27,7 +27,7 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
         {
             if (_setting.WorkflowEnabled)
             {
-                _mediator.Send(new RefreshIndex(_setting.BatchSize, notification.JobId, notification.Level),
+                _mediator.Send(new RefreshIndex(_setting.BatchSize, notification.JobId, notification.Level,notification.Dataset),
                     cancellationToken);
             }
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
 using Dwapi.Bot.Core.Application.Indices.Events;
+using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
@@ -24,11 +25,14 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
         public int BatchSize { get; }
         public string ClearJobId { get; }
 
-        public RefreshIndex(int batchSize, string clearJobId, ScanLevel level)
+        public string Dataset { get; set; }
+
+        public RefreshIndex(int batchSize, string clearJobId, ScanLevel level, string dataset)
         {
             BatchSize = batchSize;
             ClearJobId = clearJobId;
             Level = level;
+            Dataset = dataset;
         }
     }
 
@@ -37,13 +41,15 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
         private readonly IMasterPatientIndexReader _reader;
+        private readonly IDataSetRepository _dataSetRepository;
 
         public RefreshIndexHandler(IMediator mediator, ISubjectIndexRepository repository,
-            IMasterPatientIndexReader reader)
+            IMasterPatientIndexReader reader, IDataSetRepository dataSetRepository)
         {
             _mediator = mediator;
             _repository = repository;
             _reader = reader;
+            _dataSetRepository = dataSetRepository;
         }
 
         public async Task<Result<string>> Handle(RefreshIndex request, CancellationToken cancellationToken)
@@ -52,8 +58,22 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             try
             {
                 Log.Debug("getting sites...");
+                IEnumerable<SubjectSiteDto> sites;
 
-                var sites = await _reader.GetMpiSites();
+                if (string.IsNullOrWhiteSpace(request.Dataset))
+                {
+                    sites = await _reader.GetMpiSites();
+                }
+                else
+                {
+
+                    var dataSet = _dataSetRepository.GetByName(request.Dataset);
+                    if(null==dataSet)
+                        throw new Exception($"Dataset Not found !, {request.Dataset}");
+
+                    sites = await _reader.GetMpiSites(dataSet.Definition);
+                }
+
                 var mpiSites = sites.ToList();
 
                 Log.Debug($"found {mpiSites.Count} site(s)");

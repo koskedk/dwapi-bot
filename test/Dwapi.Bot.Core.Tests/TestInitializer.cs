@@ -85,6 +85,7 @@ namespace Dwapi.Bot.Core.Tests
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
                 .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
                 .AddTransient<IBlockStageRepository, BlockStageRepository>()
+                .AddTransient<IDataSetRepository, DataSetRepository>()
                 .AddMediatR(typeof(RefreshIndex).Assembly, typeof(TestEventOccuredHandler).Assembly);
 
             GlobalConfiguration.Configuration.UseMemoryStorage();

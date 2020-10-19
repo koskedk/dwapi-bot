@@ -203,6 +203,9 @@ namespace Dwapi.Bot.Infrastructure.Data
             TRUNCATE TABLE {nameof(BotContext.SubjectIndexScores)};
             TRUNCATE TABLE {nameof(BotContext.SubjectIndexStages)};
             ";
+            if (Context.Database.IsSqlite())
+                sql = sql.Replace("TRUNCATE TABLE", @"DELETE FROM");
+
 
             var count = await GetConnection().ExecuteAsync(sql,commandTimeout:0);
         }
@@ -293,7 +296,7 @@ namespace Dwapi.Bot.Infrastructure.Data
         public async Task BlockInterSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
+              update {nameof(BotContext.SubjectIndices)} 
               set InterSiteBlockId=@blockId 
               where Year(DOB)=@year and Gender=@gender";
 
@@ -321,7 +324,7 @@ namespace Dwapi.Bot.Infrastructure.Data
         public async Task BlockSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
+              update {nameof(BotContext.SubjectIndices)} 
               set SiteBlockId=@blockId 
               where Year(DOB)=@year and Gender=@gender and SiteCode=@siteCode";
 

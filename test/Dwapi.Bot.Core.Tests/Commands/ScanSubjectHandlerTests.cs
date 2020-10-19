@@ -18,7 +18,7 @@ namespace Dwapi.Bot.Core.Tests.Commands
         {
             TestInitializer.ClearDb();
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
-            var refreshResult=_mediator.Send(new RefreshIndex(100,string.Empty,ScanLevel.Site)).Result;
+            var refreshResult=_mediator.Send(new RefreshIndex(100,string.Empty,ScanLevel.Site,string.Empty)).Result;
             var command = new BlockIndex(string.Empty, ScanLevel.Site);
             var result = _mediator.Send(command).Result;
             _jobId = result.Value;

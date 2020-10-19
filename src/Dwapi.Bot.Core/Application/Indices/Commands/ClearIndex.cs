@@ -18,10 +18,12 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
     public class ClearIndex : IRequest<Result<string>>
     {
         public ScanLevel Level { get; }
+        public string Dataset { get; set; }
 
-        public ClearIndex(ScanLevel level)
+        public ClearIndex(ScanLevel level, string dataset)
         {
             Level = level;
+            Dataset = dataset;
         }
     }
 
@@ -48,7 +50,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 await _mediator.Publish(
                     new EventOccured("GetSites", $"Clearing {subjectSites.Count}", Convert.ToInt64(subjectSites.Count)),
                     cancellationToken);
-                
+
                 var initJobId = BatchJob.StartNew(x =>
                 {
                     if (!subjectSites.Any())
@@ -61,7 +63,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                     }
 
                 },$"Initializing {nameof(ClearIndex)} {request.Level}");
-                
+
 
                 var mainJobId = BatchJob.ContinueBatchWith(initJobId,x =>
                 {
@@ -83,7 +85,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 },$"{nameof(ClearIndex)} {request.Level}");
 
                 var jobId= BatchJob.ContinueBatchWith(mainJobId,
-                    x => { x.Enqueue(() => SendNotification(subjectSites.Count,mainJobId,request.Level)); },
+                    x => { x.Enqueue(() => SendNotification(subjectSites.Count,mainJobId,request.Level,request.Dataset)); },
                 $"{nameof(ClearIndex)} {request.Level} Notification");
 
                 Log.Debug($"clearing index scheduled {mainJobId}");
@@ -96,7 +98,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
                 return Result.Failure<string>(e.Message);
             }
         }
-        
+
         [DisplayName("Initializing Clearing")]
         public async Task CreateInitTask()
         {
@@ -111,10 +113,10 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
             await _mediator.Publish(new IndexSiteCleared(siteDto));
 
         }
-        
-        public async Task SendNotification(int count,string jobId,ScanLevel level)
+
+        public async Task SendNotification(int count,string jobId,ScanLevel level,string dataSet)
         {
-            await _mediator.Publish(new IndexCleared(count,jobId,level));
+            await _mediator.Publish(new IndexCleared(count,jobId,level,dataSet));
         }
     }
 }
