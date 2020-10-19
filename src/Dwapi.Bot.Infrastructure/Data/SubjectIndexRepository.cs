@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using Dwapi.Bot.SharedKernel.Utility;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dwapi.Bot.Infrastructure.Data
@@ -291,46 +293,55 @@ namespace Dwapi.Bot.Infrastructure.Data
         public async Task BlockInterSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} 
+              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
               set InterSiteBlockId=@blockId 
               where Year(DOB)=@year and Gender=@gender";
 
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"CAST(strftime('%Y',DOB) as integer)");
-
             using (var cn = GetConnectionOnly())
             {
                 if (cn.State != ConnectionState.Open)
                     cn.Open();
-                await cn.ExecuteAsync(sql,
-                    new
-                    {
-                        year = blockDto.BirthYear, gender = blockDto.Gender,
-                        blockId = LiveGuid.NewGuid()
-                    },commandTimeout:0);
+
+                using (var transaction = cn.BeginTransaction())
+                {
+                    await cn.ExecuteAsync(sql,
+                        new
+                        {
+                            year = blockDto.BirthYear, gender = blockDto.Gender,
+                            blockId = LiveGuid.NewGuid()
+                        }, transaction: transaction, commandTimeout: 0);
+                    transaction.Commit();
+                }
             }
+
         }
 
         public async Task BlockSiteSubjects(SubjectBlockDto blockDto)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} 
+              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
               set SiteBlockId=@blockId 
               where Year(DOB)=@year and Gender=@gender and SiteCode=@siteCode";
 
             if (Context.Database.IsSqlite())
                 sql = sql.Replace("Year(DOB)", @"CAST(strftime('%Y',DOB) as integer)");
-
             using (var cn = GetConnectionOnly())
             {
                 if (cn.State != ConnectionState.Open)
                     cn.Open();
-                await cn.ExecuteAsync(sql,
-                    new
-                    {
-                        year = blockDto.BirthYear, gender = blockDto.Gender, siteCode = blockDto.SiteCode,
-                        blockId = LiveGuid.NewGuid()
-                    },commandTimeout:0);
+
+                using (var transaction = cn.BeginTransaction())
+                {
+                    await cn.ExecuteAsync(sql,
+                        new
+                        {
+                            year = blockDto.BirthYear, gender = blockDto.Gender, siteCode = blockDto.SiteCode,
+                            blockId = LiveGuid.NewGuid()
+                        }, transaction: transaction, commandTimeout: 0);
+                    transaction.Commit();
+                }
             }
         }
 
@@ -354,7 +365,7 @@ namespace Dwapi.Bot.Infrastructure.Data
         public async Task UpdateScan(Guid notificationId, ScanLevel notificationLevel,ScanStatus status)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} 
+              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
               set {nameof(SubjectIndex.SiteBlockStatus)}=@status
               where {nameof(SubjectIndex.SiteBlockId)}=@notificationId";
 

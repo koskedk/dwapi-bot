@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Dwapi.Bot.Core.Application.Indices.Commands;
+using Dwapi.Bot.Core.Application.Matching.Commands;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
@@ -48,6 +49,40 @@ namespace Dwapi.Bot.Controllers
             catch (Exception e)
             {
                 var msg = $"Error executing {nameof(ClearIndex)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
+        
+        [HttpPost("ReBlock")]
+        public async Task<ActionResult> ReBlock([FromBody] ReBlockDto command)
+        {
+            if (command.Level < 0 || command.Level > 2)
+                return BadRequest(
+                    new
+                    {
+                        Status = "Unknown Scan Level, Allowed only 0 Site,1 InterSite,2 Both",
+                        Date = DateTime.Now
+                    });
+
+            try
+            {
+                var reBlockJobResult = await _mediator.Send(new ReBlockIndex((ScanLevel) command.Level));
+
+                if (reBlockJobResult.IsFailure)
+                    throw new Exception(reBlockJobResult.Error);
+
+                return Ok(
+                    new
+                    {
+                        Status = "ReBlock STARTED",
+                        Date = DateTime.Now,
+                        Ref = reBlockJobResult.Value
+                    });
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(ReBlockIndex)}(s)";
                 Log.Error(e, msg);
                 return StatusCode(500, $"{msg} {e.Message}");
             }

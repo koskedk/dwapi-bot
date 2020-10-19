@@ -15,32 +15,30 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
-    public class BlockIndex:IRequest<Result<string>>
+    public class ReBlockIndex:IRequest<Result<string>>
     {
         public ScanLevel Level { get; }
-        public string JobId { get;  }
-
-        public BlockIndex(string jobId, ScanLevel level)
+        
+        public ReBlockIndex(ScanLevel level)
         {
-            JobId = jobId;
             Level = level;
         }
     }
 
-    public class BlockIndexHandler : IRequestHandler<BlockIndex, Result<string>>
+    public class ReBlockIndexHandler : IRequestHandler<ReBlockIndex, Result<string>>
     {
         private readonly IMediator _mediator;
         private readonly ISubjectIndexRepository _repository;
 
-        public BlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository)
+        public ReBlockIndexHandler(IMediator mediator, ISubjectIndexRepository repository)
         {
             _mediator = mediator;
             _repository = repository;
         }
 
-        public async Task<Result<string>> Handle(BlockIndex request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Handle(ReBlockIndex request, CancellationToken cancellationToken)
         {
-            Log.Debug("Blocking subject...");
+            Log.Debug("Re Blocking subject...");
             try
             {
                 IEnumerable<SubjectBlockDto> blocks;
@@ -97,9 +95,8 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 return Result.Failure<string>(e.Message);
             }
         }
-
+        
         [DisplayName("Blocking {1}/{2} ")]
-        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
         public async Task BlockSiteIndex(SubjectBlockDto siteDto,int count,int total)
         {
             await _repository.BlockSiteSubjects(siteDto);
@@ -107,7 +104,6 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
         }
 
         [DisplayName("Blocking-Inter {1}/{2} ")]
-        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
         public async Task BlockInterSiteIndex(SubjectBlockDto siteDto,int count,int total)
         {
             await _repository.BlockInterSiteSubjects(siteDto);
