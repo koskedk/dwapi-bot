@@ -56,7 +56,7 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
         {
             if (_setting.WorkflowEnabled)
             {
-                _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.InterSite, false), cancellationToken);
+                _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.InterSite, false,true), cancellationToken);
             }
 
             return Task.CompletedTask;
