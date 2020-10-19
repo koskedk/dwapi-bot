@@ -368,7 +368,7 @@ namespace Dwapi.Bot.Infrastructure.Data
         public async Task UpdateScan(Guid notificationId, ScanLevel notificationLevel,ScanStatus status)
         {
             var sql = $@"
-              update {nameof(BotContext.SubjectIndices)} with (rowlock) 
+              update {nameof(BotContext.SubjectIndices)}  
               set {nameof(SubjectIndex.SiteBlockStatus)}=@status
               where {nameof(SubjectIndex.SiteBlockId)}=@notificationId";
 

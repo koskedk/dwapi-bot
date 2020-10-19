@@ -54,7 +54,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                     blocks = await _repository.GetSubjectInterSiteBlockDtos();
                 }
 
-                var blockSites = blocks.ToList();
+                var blockSites = blocks.ToList().Where(x => x.IsValid).ToList();
 
                var mainJobId= BatchJob.StartNew(x =>
                {

@@ -18,7 +18,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
     public class ReBlockIndex:IRequest<Result<string>>
     {
         public ScanLevel Level { get; }
-        
+
         public ReBlockIndex(ScanLevel level)
         {
             Level = level;
@@ -52,7 +52,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                     blocks = await _repository.GetSubjectInterSiteBlockDtos();
                 }
 
-                var blockSites = blocks.ToList();
+                var blockSites = blocks.ToList().Where(x => x.IsValid).ToList();;
 
                var mainJobId= BatchJob.StartNew(x =>
                {
@@ -95,15 +95,17 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                 return Result.Failure<string>(e.Message);
             }
         }
-        
-        [DisplayName("Blocking {1}/{2} ")]
+
+        [DisplayName("Re-Blocking {1}/{2} ")]
+        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
         public async Task BlockSiteIndex(SubjectBlockDto siteDto,int count,int total)
         {
             await _repository.BlockSiteSubjects(siteDto);
             await _mediator.Publish(new IndexSiteBlocked(siteDto));
         }
 
-        [DisplayName("Blocking-Inter {1}/{2} ")]
+        [DisplayName("Re-Blocking-Inter {1}/{2} ")]
+        [DisableConcurrentExecution(timeoutInSeconds: 10 * 60)]
         public async Task BlockInterSiteIndex(SubjectBlockDto siteDto,int count,int total)
         {
             await _repository.BlockInterSiteSubjects(siteDto);

@@ -69,7 +69,7 @@ namespace Dwapi.Bot.Core.Application.Indices.Commands
 
                     var dataSet = _dataSetRepository.GetByName(request.Dataset);
                     if(null==dataSet)
-                        throw new Exception($"Dataset Not found !, {request.Dataset}");
+                        throw new Exception($"DataSet Not found !, {request.Dataset}");
 
                     sites = await _reader.GetMpiSites(dataSet.Definition);
                 }

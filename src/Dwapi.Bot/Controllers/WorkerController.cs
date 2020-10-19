@@ -33,7 +33,7 @@ namespace Dwapi.Bot.Controllers
 
             try
             {
-                var clearJobResult = await _mediator.Send(new ClearIndex((ScanLevel) command.Level,command.Dataset));
+                var clearJobResult = await _mediator.Send(new ClearIndex((ScanLevel) command.Level,command.DataSet));
 
                 if (clearJobResult.IsFailure)
                     throw new Exception(clearJobResult.Error);
