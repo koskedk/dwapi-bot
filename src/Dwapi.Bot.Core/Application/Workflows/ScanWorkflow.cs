@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.WorkFlows
 {
-    public class ScanWorkFlow:IScanWorkflow
+    public class ScanWorkFlow : IScanWorkflow
     {
         private readonly IAppSetting _setting;
         private readonly IMediator _mediator;
@@ -27,7 +27,8 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
         {
             if (_setting.WorkflowEnabled)
             {
-                _mediator.Send(new RefreshIndex(_setting.BatchSize, notification.JobId, notification.Level,notification.Dataset),
+                _mediator.Send(
+                    new RefreshIndex(_setting.BatchSize, notification.JobId, notification.Level, notification.Dataset),
                     cancellationToken);
             }
 
@@ -40,14 +41,22 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
             {
                 if (notification.Level == ScanLevel.Both)
                 {
-                    _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.Site), cancellationToken);
-                    _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.InterSite), cancellationToken);
+                    _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.Site, true), cancellationToken);
                 }
                 else
                 {
                     _mediator.Send(new BlockIndex(notification.JobId, notification.Level), cancellationToken);
                 }
+            }
 
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(PartIndexBlocked notification, CancellationToken cancellationToken)
+        {
+            if (_setting.WorkflowEnabled)
+            {
+                _mediator.Send(new BlockIndex(notification.JobId, ScanLevel.InterSite, false), cancellationToken);
             }
 
             return Task.CompletedTask;
@@ -80,14 +89,14 @@ namespace Dwapi.Bot.Core.Application.WorkFlows
 
         public Task Handle(IndexScanned notification, CancellationToken cancellationToken)
         {
-            Log.Debug(new string('=',50));
-            Log.Debug(new string('+',50));
+            Log.Debug(new string('=', 50));
+            Log.Debug(new string('+', 50));
             Log.Debug("SCAN COMPLETED");
             Log.Debug("SCAN COMPLETED");
             Log.Debug("SCAN COMPLETED");
             Log.Debug("SCAN COMPLETED");
-            Log.Debug(new string('+',50));
-            Log.Debug(new string('=',50));
+            Log.Debug(new string('+', 50));
+            Log.Debug(new string('=', 50));
             return Task.CompletedTask;
         }
     }

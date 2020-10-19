@@ -15,15 +15,17 @@ using Serilog;
 
 namespace Dwapi.Bot.Core.Application.Matching.Commands
 {
-    public class BlockIndex:IRequest<Result<string>>
+    public class BlockIndex : IRequest<Result<string>>
     {
         public ScanLevel Level { get; }
-        public string JobId { get;  }
+        public string JobId { get; }
+        public bool NotifyNextLevel { get; }
 
-        public BlockIndex(string jobId, ScanLevel level)
+        public BlockIndex(string jobId, ScanLevel level, bool notifyNextLevel = false)
         {
             JobId = jobId;
             Level = level;
+            NotifyNextLevel = notifyNextLevel;
         }
     }
 
@@ -84,7 +86,7 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
                    $"{nameof(BlockIndex)} {request.Level}");
 
                 var jobId=  BatchJob.ContinueBatchWith(mainJobId,
-                   x => { x.Enqueue(() => SendNotification(blockSites.Count,mainJobId,request.Level)); },
+                   x => { x.Enqueue(() => SendNotification(blockSites.Count,mainJobId,request.Level,request.NotifyNextLevel)); },
                    $"{nameof(BlockIndex)} {request.Level} Notification");
 
                Log.Debug($"blocking subject scheduled {mainJobId}");
@@ -114,8 +116,13 @@ namespace Dwapi.Bot.Core.Application.Matching.Commands
             await _mediator.Publish(new IndexSiteBlocked(siteDto));
         }
 
-        public async Task SendNotification(int count,string jobId, ScanLevel scanLevel)
+        public async Task SendNotification(int count,string jobId, ScanLevel scanLevel,bool notifyLevel)
         {
+            if (notifyLevel)
+            {
+                await _mediator.Publish(new PartIndexBlocked(count,jobId, scanLevel));
+                return;
+            }
             await _mediator.Publish(new IndexBlocked(count,jobId, scanLevel));
         }
     }

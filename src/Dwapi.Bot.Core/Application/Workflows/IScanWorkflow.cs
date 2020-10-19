@@ -7,6 +7,7 @@ namespace Dwapi.Bot.Core.Application.Workflows
     public interface IScanWorkflow:
         INotificationHandler<IndexCleared>,
         INotificationHandler<IndexRefreshed>,
+        INotificationHandler<PartIndexBlocked>,
         INotificationHandler<IndexBlocked>,
         INotificationHandler<IndexScanned>
     {
