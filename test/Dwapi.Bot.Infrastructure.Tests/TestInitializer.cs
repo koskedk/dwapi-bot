@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Dapper;
 using Dwapi.Bot.Core.Algorithm.JaroWinkler;
+using Dwapi.Bot.Core.Domain.Catalogs;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Readers;
@@ -29,6 +30,7 @@ namespace Dwapi.Bot.Infrastructure.Tests
         public static IServiceCollection ServicesOnly;
         public static string ConnectionString;
         public static string MpiConnectionString;
+        public static string DwcConnectionString;
         public static IConfigurationRoot Configuration;
 
         [OneTimeSetUp]
@@ -53,23 +55,33 @@ namespace Dwapi.Bot.Infrastructure.Tests
                 .Replace("#dir#", dir);
             MpiConnectionString = mpiConnectionString.ToOsStyle();
 
+            var dwcConnectionString = config.GetConnectionString("dwcConnection")
+                .Replace("#dir#", dir);
+            DwcConnectionString = mpiConnectionString.ToOsStyle();
+
             var connectionString = config.GetConnectionString("liveConnection")
                 .Replace("#dir#", dir);
             ConnectionString = connectionString.ToOsStyle();
             var connection = new SqliteConnection(connectionString.Replace(".db", $"{DateTime.Now.Ticks}.db"));
             connection.Open();
 
-            var services = new ServiceCollection().AddDbContext<BotContext>(x => x.UseSqlite(connection));
+            var services = new ServiceCollection()
+            .AddDbContext<BotContext>(x => x.UseSqlite(connection))
+            .AddDbContext<BotCleanerContext>(x => x.UseSqlite(connection));;
 
             services
                 .AddTransient<BotContext>()
+                .AddTransient<BotCleanerContext>()
                 .AddTransient<IJaroWinklerScorer, JaroWinklerScorer>()
                 .AddTransient<IMasterPatientIndexReader>(s =>
                     new MasterPatientIndexReader(new DataSourceInfo(DbType.SQLite, mpiConnectionString)))
+                .AddTransient<IDocketReader>(s =>
+                    new DocketReader(new DataSourceInfo(DbType.SQLite, dwcConnectionString)))
                 .AddTransient<ISubjectIndexRepository, SubjectIndexRepository>()
                 .AddTransient<IMatchConfigRepository, MatchConfigRepository>()
                 .AddTransient<IBlockStageRepository, BlockStageRepository>()
-                .AddTransient<IDataSetRepository, DataSetRepository>();
+                .AddTransient<IDataSetRepository, DataSetRepository>()
+                .AddTransient<ISiteRepository, SiteRepository>();
 
             Services = services;
 
@@ -82,6 +94,9 @@ namespace Dwapi.Bot.Infrastructure.Tests
             var context = ServiceProvider.GetService<BotContext>();
             context.Database.EnsureCreated();
             context.EnsureSeeded();
+
+            var contextC = ServiceProvider.GetService<BotCleanerContext>();
+            contextC.Database.Migrate();
         }
         public static void SeedData(params IEnumerable<object>[] entities)
         {
@@ -105,7 +120,7 @@ namespace Dwapi.Bot.Infrastructure.Tests
         private void RemoveTestsFilesDbs()
         {
             string[] keyFiles =
-                { "dwapibot.db","mpi.db"};
+                { "dwapibot.db","mpi.db","dwc.db"};
             string[] keyDirs = { @"TestArtifacts/Database".ToOsStyle()};
 
             foreach (var keyDir in keyDirs)

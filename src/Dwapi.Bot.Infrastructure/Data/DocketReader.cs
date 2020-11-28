@@ -127,11 +127,11 @@ WHERE f.Code=@siteCode
             return await  GetConnection().QueryAsync<Site>(sql,new {siteCodes},commandTimeout:0);;
         }
 
-        public async Task<IEnumerable<Subject>> GetSubjects(Guid facilityId,Guid siteId)
+        public async Task<IEnumerable<Subject>> GetSubjects(Guid facilityId)
         {
             var sql = $@"
                            SELECT
-                                   'PatientExtract' Extract,p.PatientPID PatientPk,Id PatientId,'{siteId}' SiteId,p.Created
+                                   'PatientExtract' Extract,p.PatientPID PatientPk,Id PatientId,p.Created
                             FROM
                                  PatientExtract p inner join
                                  (
@@ -149,7 +149,7 @@ WHERE f.Code=@siteCode
             return await GetConnection().QueryAsync<Subject>(sql, new {facilityId}, commandTimeout: 0);
         }
 
-        public async Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> patientIds,Guid siteId)
+        public async Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> subjectIds)
         {
             var list=new List<SubjectExtract>();
 
@@ -173,12 +173,12 @@ WHERE f.Code=@siteCode
                             from 
                                  {extract}
                             where 
-                                  PatientId in @patientIds";
+                                  PatientId in @subjectIds";
 
                 if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
                     sql = sql.Replace("ISNULL", "IFNULL");
 
-                var  recs=await GetConnection().QueryAsync<SubjectExtract>(sql,commandTimeout:0);
+                var  recs=await GetConnection().QueryAsync<SubjectExtract>(sql,new {subjectIds},commandTimeout:0);
                 list.AddRange(recs);
             }
             return list;

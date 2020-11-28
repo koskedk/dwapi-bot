@@ -1,10 +1,8 @@
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using Dwapi.Bot.SharedKernel.Model;
 
-namespace Dwapi.Bot.Core.Domain.Catalogs
+namespace Dwapi.Bot.Core.Domain.Catalogs.Dtos
 {
-    public class SubjectExtract:Entity<Guid>
+    public class SubjectExtractDto
     {
         public string Extract { get; set; }
         public Guid PatientId { get; set; }
@@ -13,5 +11,6 @@ namespace Dwapi.Bot.Core.Domain.Catalogs
         public Guid? PreferredExtractId { get; set; }
         public Guid SiteId { get; set; }
         public DateTime Created { get; set; }
+        public int PatientPk { get; set; }
     }
 }

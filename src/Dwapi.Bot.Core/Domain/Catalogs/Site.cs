@@ -15,5 +15,10 @@ namespace Dwapi.Bot.Core.Domain.Catalogs
         public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
         public ICollection<SubjectExtract> SubjectExtracts { get; set; } = new List<SubjectExtract>();
         public CleanerStatus Status { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Code}|{Name}";
+        }
     }
 }

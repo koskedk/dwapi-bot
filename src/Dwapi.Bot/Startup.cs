@@ -7,6 +7,7 @@ using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Application.Workflows;
 using Dwapi.Bot.Core.Application.WorkFlows;
+using Dwapi.Bot.Core.Domain.Catalogs;
 using Dwapi.Bot.Core.Domain.Configs;
 using Dwapi.Bot.Core.Domain.Indices;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
@@ -47,6 +48,7 @@ namespace Dwapi.Bot
 
             var connectionString = Configuration["ConnectionStrings:botConnection"];
             var mpiConnectionString = Configuration["ConnectionStrings:mpiConnection"];
+            var dwcConnectionString = Configuration["ConnectionStrings:dwcConnection"];
 
             int batchSize = Configuration.GetSection("BatchSize").Get<int>();
             int blockSize = Configuration.GetSection("BlockSize").Get<int>();
@@ -57,16 +59,24 @@ namespace Dwapi.Bot
                     x => x.MigrationsAssembly(typeof(BotContext).GetTypeInfo().Assembly.GetName().Name)
                 )
             );
+            services.AddDbContext<BotCleanerContext>(o => o.UseSqlServer(
+                    connectionString,
+                    x => x.MigrationsAssembly(typeof(BotCleanerContext).GetTypeInfo().Assembly.GetName().Name)
+                )
+            );
 
             services.AddSingleton<IAppSetting>(ctx => new AppSetting(workflowEnabled,blockSize,batchSize));
             services.AddSingleton<IScanWorkflow, ScanWorkFlow>();
             services.AddTransient<IJaroWinklerScorer, JaroWinklerScorer>();
             services.AddTransient<IMasterPatientIndexReader>(s =>
                 new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));
+            services.AddTransient<IDocketReader>(s =>
+                new DocketReader(new DataSourceInfo(DbType.SQLite, dwcConnectionString)));
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddScoped<IBlockStageRepository, BlockStageRepository>();
             services.AddScoped<IDataSetRepository, DataSetRepository>();
+            services.AddScoped<ISiteRepository, SiteRepository>();
             services.AddMediatR(typeof(RefreshIndex).Assembly, typeof(IndexRefreshed).Assembly);
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)

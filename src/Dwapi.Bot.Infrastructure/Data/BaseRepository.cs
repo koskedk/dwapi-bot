@@ -127,6 +127,26 @@ namespace Dwapi.Bot.Infrastructure.Data
             }
         }
 
+        public async Task Create<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>
+        {
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.BulkActionAsync(x => x.BulkInsert(entities));
+            }
+        }
+
+        public async Task Update<TC, TCId>(IEnumerable<TC> entities) where TC : Entity<TCId>
+        {
+            using (var cn = GetConnectionOnly())
+            {
+                if (cn.State != ConnectionState.Open)
+                    cn.Open();
+                await cn.BulkActionAsync(x => x.BulkUpdate(entities));
+            }
+        }
+
         public virtual IDbConnection GetConnection(bool open = true)
         {
             if (null == _connection)
