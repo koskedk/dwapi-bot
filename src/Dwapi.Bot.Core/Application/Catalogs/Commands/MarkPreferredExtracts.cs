@@ -31,7 +31,7 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
             _reader = reader;
             _repository = repository;
         }
-
+        // TODO: set preferred extracts
         public async Task<Result> Handle(MarkPreferredExtracts request, CancellationToken cancellationToken)
         {
             Log.Debug("Marking Subject Extracts...");
@@ -46,22 +46,49 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
 
                 foreach (var site in siteCatalog)
                 {
-                    // Set Preferred Subjects
+                    // Get Subjects
 
-                    var preferredList = new List<Guid>();
+                    var siteSubjects = _repository.GetAll<Subject, Guid>().Where(x => x.SiteId == site.Id).ToList();
 
-                    var subjectExtractDtos = _repository.GetExtracts(site.Id).ToList();
 
-                    foreach (var s in subjectExtractDtos.GroupBy(x => x.PatientPk))
+                    foreach (var subjectsGroup in siteSubjects.GroupBy(x => x.PreferredPatientId))
                     {
-                        var preferredId = s.OrderByDescending(x => x.Created).First().PatientId;
-                        foreach (var ps in s)
-                            ps.AssignPreferred(preferredId);
-                        preferredList.Add(preferredId);
-                    }
+                        //Get extracts for this group
 
-                    if (preferredList.Any())
-                        await _repository.Update<Subject, Guid>(subjectExtractDtos);
+                        var groupPatientIds = subjectsGroup.Select(x => x.PatientId).ToList();
+
+                        var subjectExtracts = _repository
+                            .GetExtracts(site.Id,groupPatientIds ).ToList();
+
+                        if (subjectExtracts.Any())
+                        {
+
+                            foreach (var extractsGroup in subjectExtracts.GroupBy(x=>x.Extract))
+                            {
+
+                                var candidateExtracts = extractsGroup.Where(x => x.PatientId == subjectsGroup.Key).ToList();
+
+                                if (candidateExtracts.Any())
+                                {
+                                    candidateExtracts.ForEach(x => x.CandidatePatientId = subjectsGroup.Key);
+                                }
+                                else
+                                {
+                                    var latestExtract = extractsGroup.OrderByDescending(x => x.Created).First();
+
+                                    candidateExtracts = extractsGroup
+                                        .Where(x => x.PatientId == latestExtract.PatientId).ToList();
+
+                                    candidateExtracts.ForEach(x => x.CandidatePatientId = subjectsGroup.Key);
+                                }
+
+                                if (candidateExtracts.Any())
+                                {
+                                    await _repository.Update<SubjectExtract, Guid>(candidateExtracts);
+                                }
+                            }
+                        }
+                    }
                 }
 
                 return Result.Ok();

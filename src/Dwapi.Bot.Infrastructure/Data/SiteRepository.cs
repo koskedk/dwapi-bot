@@ -47,22 +47,18 @@ namespace Dwapi.Bot.Infrastructure.Data
             }
         }
 
-        public IEnumerable<SubjectExtractDto> GetExtracts(Guid siteId)
+        public IEnumerable<SubjectExtract> GetExtracts(Guid siteId, List<Guid> patientIds)
         {
-            var list=new List<SubjectExtractDto>();
+            var list=new List<SubjectExtract>();
 
-            var sql = @"
-                select e.*,s.PatientPk from Extracts e
-                    inner join Subjects s on e.PatientId=s.PatientId and e.SiteId=s.SiteId
-                where e.SiteId=@siteId
-                ";
+            var sql = @"select * from Extracts where SiteId=@siteId and PatientId in @patientIds";
 
             using (var cn = GetConnectionOnly())
             {
                 if (cn.State != ConnectionState.Open)
                     cn.Open();
 
-                list = cn.Query<SubjectExtractDto>(sql,new{siteId},commandTimeout:0).ToList();
+                list = cn.Query<SubjectExtract>(sql,new{siteId,patientIds},commandTimeout:0).ToList();
             }
 
             return list;

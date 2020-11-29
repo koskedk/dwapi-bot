@@ -13,5 +13,8 @@ namespace Dwapi.Bot.Core.Domain.Readers
 
         Task<IEnumerable<Subject>> GetSubjects(Guid facilityId);
         Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> subjectIds);
+
+        Task CleanExtract(string extract, Guid candidatePatientId,List<Guid> patientIds,List<Guid> extractIds);
+        Task CleanSubject(List<Guid> patientIds);
     }
 }

@@ -9,10 +9,10 @@ using NUnit.Framework;
 namespace Dwapi.Bot.Core.Tests.Commands
 {
     [TestFixture]
-    public class MarkPreferredSubjectsTests
+    public class MarkPreferredExtractsTests
     {
         private IMediator _mediator;
-        private Result _siteResult,_subjectResult;
+        private Result _siteResult,_subjectResult,_prefSubjResult;
 
         [OneTimeSetUp]
         public void Init()
@@ -26,22 +26,19 @@ namespace Dwapi.Bot.Core.Tests.Commands
             _mediator = TestInitializer.ServiceProvider.GetService<IMediator>();
             _siteResult = _mediator.Send(new LoadSites()).Result;
             _subjectResult = _mediator.Send(new LoadSubjects("testJobId")).Result;
+            _prefSubjResult =  _mediator.Send(new MarkPreferredSubjects("testLoadJobId")).Result;
         }
 
         [Test]
-        public void should_Prefer_Subjects()
+        public void should_Prefer_Extracts()
         {
-            var command = new MarkPreferredSubjects("testLoadJobId");
+            var command = new MarkPreferredExtracts("testLoadJobId");
             var result = _mediator.Send(command).Result;
             Assert.True(result.IsSuccess);
 
             var context = TestInitializer.ServiceProvider.GetService<BotCleanerContext>();
-            var preferred = context.Subjects.OrderByDescending(x => x.Created).First();
-            var others = context.Subjects.Where(x => x.SiteId == preferred.SiteId && x.PatientPk == preferred.PatientPk)
-                .ToList().OrderBy(x=>x.Created).ToList();
-            Assert.True(preferred.IsPreffed);
-            Assert.False(others.First().IsPreffed);
-            Assert.True(others.Last().IsPreffed);
+            var preferredExtracts = context.Extracts.Where(x => x.CandidatePatientId.HasValue).ToList();
+            Assert.True(preferredExtracts.Any());
         }
     }
 }

@@ -184,6 +184,32 @@ WHERE f.Code=@siteCode
             return list;
         }
 
+        public async Task CleanExtract(string extract,Guid candidatePatientId, List<Guid> patientIds, List<Guid> extractIds)
+        {
+            var sql = $"UPDATE {extract} SET PatientId=@candidatePatientId WHERE PatientId IN @patientIds";
+
+            var delSql = $"DELETE FROM {extract} WHERE Id IN @extractIds";
+
+
+            using (var con = GetConnection())
+            {
+                con.Open();
+                await con.ExecuteAsync(sql, new {candidatePatientId,patientIds,extractIds}, commandTimeout: 0);
+                await con.ExecuteAsync(delSql, new {candidatePatientId,patientIds,extractIds}, commandTimeout: 0);
+            }
+        }
+
+        public async Task CleanSubject(List<Guid> patientIds)
+        {
+            var sql = $@"DELETE FROM PatientExtract WHERE Id IN @patientIds";
+
+            using (var con = GetConnection())
+            {
+                con.Open();
+                await con.ExecuteAsync(sql, new {patientIds}, commandTimeout: 0);
+            }
+        }
+
         private IDbConnection GetConnection()
         {
             var connectionString = SourceInfo.Connection;

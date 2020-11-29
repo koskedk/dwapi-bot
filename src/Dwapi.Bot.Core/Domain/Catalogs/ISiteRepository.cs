@@ -10,6 +10,6 @@ namespace Dwapi.Bot.Core.Domain.Catalogs
     {
         Task Clear();
         Task Clear(int[] siteCodes);
-        IEnumerable<SubjectExtractDto> GetExtracts(Guid siteId);
+        IEnumerable<SubjectExtract> GetExtracts(Guid siteId,List<Guid> patientIds);
     }
 }
