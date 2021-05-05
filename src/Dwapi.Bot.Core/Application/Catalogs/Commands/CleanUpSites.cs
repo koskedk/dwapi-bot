@@ -26,7 +26,7 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
         }
     }
 
-    public class CleanUpSitesHandler : IRequestHandler<LoadSites, Result>
+    public class CleanUpSitesHandler : IRequestHandler<CleanUpSites, Result>
     {
         private readonly IDocketReader _reader;
         private readonly ISiteRepository _repository;
@@ -39,7 +39,7 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
         }
 
         // TODO: Cleaup sites review
-        public async Task<Result> Handle(LoadSites request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(CleanUpSites request, CancellationToken cancellationToken)
         {
             Log.Debug("loading Catalog...");
             string jobId = string.Empty;
@@ -90,7 +90,7 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
                 }
 
 
-                if (request.SiteCodes.Any() && !request.ClearAll)
+                if (request.SiteCodes.Any())
                     await _repository.Clear(request.SiteCodes);
                 else
                     await _repository.Clear();

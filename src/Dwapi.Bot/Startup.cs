@@ -71,7 +71,7 @@ namespace Dwapi.Bot
             services.AddTransient<IMasterPatientIndexReader>(s =>
                 new MasterPatientIndexReader(new DataSourceInfo(DbType.MsSQL, mpiConnectionString)));
             services.AddTransient<IDocketReader>(s =>
-                new DocketReader(new DataSourceInfo(DbType.SQLite, dwcConnectionString)));
+                new DocketReader(new DataSourceInfo(DbType.MsSQL, dwcConnectionString)));
             services.AddScoped<IMatchConfigRepository, MatchConfigRepository>();
             services.AddScoped<ISubjectIndexRepository, SubjectIndexRepository>();
             services.AddScoped<IBlockStageRepository, BlockStageRepository>();
@@ -104,7 +104,7 @@ namespace Dwapi.Bot
             //add hangfire server 3
             services.AddHangfireServer(x => x.ServerName = "Server 3");
 
-
+            services.AddSwaggerGen();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IServiceProvider serviceProvider)
@@ -118,6 +118,11 @@ namespace Dwapi.Bot
                 app.UseHsts();
                 app.UseHttpsRedirection();
             }
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dwapi.Bot V1");
+            });
 
             app.UseCors(
                 builder => builder
@@ -163,6 +168,7 @@ namespace Dwapi.Bot
             }
 
             EnsureMigrationOfContext<BotContext>(serviceProvider);
+            EnsureMigrationOfContext<BotCleanerContext>(serviceProvider);
             Log.Debug(@"initializing Database [Complete]");
             Log.Debug(
                 @"---------------------------------------------------------------------------------------------------");
@@ -182,7 +188,7 @@ namespace Dwapi.Bot
             Log.Debug("Dwapi.Bot started !");
         }
 
-          public static void EnsureMigrationOfContext<T>(IServiceProvider app) where T : BotContext
+          public static void EnsureMigrationOfContext<T>(IServiceProvider app) where T : DbContext
           {
               var contextName = typeof(T).Name;
               Log.Debug($"initializing Database context: {contextName}");
@@ -190,7 +196,9 @@ namespace Dwapi.Bot
               try
               {
                   context.Database.Migrate();
-                  context.EnsureSeeded();
+                  if(context is BotContext botContext)
+                      botContext.EnsureSeeded();
+
                   Log.Debug($"initializing Database context: {contextName} [OK]");
               }
               catch (Exception e)

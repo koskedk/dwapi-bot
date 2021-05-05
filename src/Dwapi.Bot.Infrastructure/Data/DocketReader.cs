@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Dwapi.Bot.Core.Domain.Catalogs;
@@ -9,6 +10,7 @@ using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.Core.Domain.Readers;
 using Dwapi.Bot.Infrastructure.Configuration;
 using Dwapi.Bot.SharedKernel.Common;
+using Dwapi.Bot.SharedKernel.Utility;
 using Microsoft.Data.Sqlite;
 
 namespace Dwapi.Bot.Infrastructure.Data
@@ -149,38 +151,56 @@ WHERE f.Code=@siteCode
             return await GetConnection().QueryAsync<Subject>(sql, new {facilityId}, commandTimeout: 0);
         }
 
-        public async Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> subjectIds)
+        public async Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> siteSubjectIds)
         {
             var list=new List<SubjectExtract>();
 
-            var extracts=new List<string>
+            foreach (var ids in GetBatches(siteSubjectIds).Chunks(1000))
             {
-                "PatientArtExtract",
-                "PatientBaselinesExtract",
-                "PatientStatusExtract",
-                "PatientAdverseEventExtract",
-                "PatientArtExtract",
-                "PatientPharmacyExtract",
-                "PatientLaboratoryExtract",
-                "PatientVisitExtract"
-            };
+                var subjectIds = ids.ToArray();
 
-            foreach (var extract in extracts)
-            {
-                var sql = $@"
+                var extracts=new List<string>
+                {
+                    "PatientArtExtract",
+                    "PatientBaselinesExtract",
+                    "PatientStatusExtract",
+                    "PatientAdverseEventExtract",
+                    "PatientArtExtract",
+                    "PatientPharmacyExtract",
+                    "PatientLaboratoryExtract",
+                    "PatientVisitExtract",
+                    "AllergiesChronicIllnessExtract",
+                    "IptExtract",
+                    "DepressionScreeningExtract",
+                    "ContactListingExtract",
+                    "GbvScreeningExtract",
+                    "EnhancedAdherenceCounsellingExtract",
+                    "DrugAlcoholScreeningExtract",
+                    "OvcExtract",
+                    "OtzExtract"
+                };
+
+
+
+
+                foreach (var extract in extracts)
+                {
+                    var sql = $@"
                             select 
                                 '{extract}' Extract,PatientId,Id ExtractId,Created 
                             from 
                                  {extract}
                             where 
-                                  PatientId in @subjectIds";
+                                  PatientId IN @subjectIds";
 
-                if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
-                    sql = sql.Replace("ISNULL", "IFNULL");
-
-                var  recs=await GetConnection().QueryAsync<SubjectExtract>(sql,new {subjectIds},commandTimeout:0);
-                list.AddRange(recs);
+                    if (SourceInfo.DbType == SharedKernel.Enums.DbType.SQLite)
+                        sql = sql.Replace("ISNULL", "IFNULL");
+                    var recs =await  GetConnection()
+                        .QueryAsync<SubjectExtract>(sql, new {subjectIds = subjectIds}, commandTimeout: 0);
+                    list.AddRange(recs.ToList());
+                }
             }
+
             return list;
         }
 
@@ -221,6 +241,11 @@ WHERE f.Code=@siteCode
                 return new SqliteConnection(connectionString);
 
             return null;
+        }
+
+        public IEnumerable<Guid> GetBatches(List<Guid> guids)
+        {
+            return guids;
         }
     }
 }

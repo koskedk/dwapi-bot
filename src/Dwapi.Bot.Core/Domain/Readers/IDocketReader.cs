@@ -12,7 +12,7 @@ namespace Dwapi.Bot.Core.Domain.Readers
         Task<IEnumerable<Site>> GetSites(int[] siteCodes);
 
         Task<IEnumerable<Subject>> GetSubjects(Guid facilityId);
-        Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> subjectIds);
+        Task<IEnumerable<SubjectExtract>> GetSubjectExtracts(List<Guid> siteSubjectIds);
 
         Task CleanExtract(string extract, Guid candidatePatientId,List<Guid> patientIds,List<Guid> extractIds);
         Task CleanSubject(List<Guid> patientIds);

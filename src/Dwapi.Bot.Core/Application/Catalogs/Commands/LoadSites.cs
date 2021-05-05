@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Dwapi.Bot.Core.Application.Indices.Events;
 using Dwapi.Bot.Core.Domain.Catalogs;
 using Dwapi.Bot.Core.Domain.Readers;
 using MediatR;
@@ -66,6 +67,8 @@ namespace Dwapi.Bot.Core.Application.Catalogs.Commands
 
                 if (loadedSites.Any())
                     await _repository.Create<Site, Guid>(loadedSites);
+
+                await _mediator.Publish(new SitesLoaded(loadedSites.Count, jobId));
 
                 return Result.Ok();
             }

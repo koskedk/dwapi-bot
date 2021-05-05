@@ -1,7 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Dwapi.Bot.Core.Application.Catalogs.Commands;
 using Dwapi.Bot.Core.Application.Indices.Commands;
 using Dwapi.Bot.Core.Application.Matching.Commands;
+using Dwapi.Bot.Core.Domain.Catalogs.Dtos;
 using Dwapi.Bot.Core.Domain.Indices.Dto;
 using Dwapi.Bot.SharedKernel.Enums;
 using MediatR;
@@ -83,6 +86,73 @@ namespace Dwapi.Bot.Controllers
             catch (Exception e)
             {
                 var msg = $"Error executing {nameof(ReBlockIndex)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
+
+        [HttpPost("LoadSites")]
+        public async Task<ActionResult> Post([FromBody] LoadSites command)
+        {
+            if (null==command)
+                return BadRequest(
+                    new
+                    {
+                        Status = "No command available",
+                        Date = DateTime.Now
+                    });
+
+            try
+            {
+                var clearJobResult = await _mediator.Send(new LoadSites());
+                var loadSubjects = await _mediator.Send(new LoadSubjects("jx"));
+                var subjectJobResult = await _mediator.Send(new MarkPreferredSubjects("jx3"));
+                var extractsJobResult = await _mediator.Send(new MarkPreferredExtracts("jx4"));
+
+                return Ok(
+                    new
+                    {
+                        Status = "Sites Loaded",
+                        Date = DateTime.Now,
+                        Ref = ""
+                    });
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(CleanUpSites)}(s)";
+                Log.Error(e, msg);
+                return StatusCode(500, $"{msg} {e.Message}");
+            }
+        }
+
+        [HttpPost("CleanDwh")]
+        public async Task<ActionResult> Post([FromBody] CleanSiteDto command)
+        {
+            if (null==command)
+            return BadRequest(
+                    new
+                    {
+                        Status = "No command available",
+                        Date = DateTime.Now
+                    });
+
+            try
+            {
+                var clearJobResult = command.SiteCodes.Any()
+                    ? await _mediator.Send(new CleanUpSites(command.SiteCodes))
+                    : await  _mediator.Send(new CleanUpSites());
+
+                return Ok(
+                    new
+                    {
+                        Status = "Clean Up STARTED",
+                        Date = DateTime.Now,
+                        Ref = ""
+                    });
+            }
+            catch (Exception e)
+            {
+                var msg = $"Error executing {nameof(CleanUpSites)}(s)";
                 Log.Error(e, msg);
                 return StatusCode(500, $"{msg} {e.Message}");
             }
