@@ -72,7 +72,7 @@ namespace Dwapi.Bot.Core.Tests
 
             var dwcConnectionString = config.GetConnectionString("dwcConnection")
                 .Replace("#dir#", dir);
-            DwcConnectionString = mpiConnectionString.ToOsStyle();
+            DwcConnectionString = dwcConnectionString.ToOsStyle();
 
             var connectionString = config.GetConnectionString("liveConnection")
                 .Replace("#dir#", dir);
@@ -146,7 +146,7 @@ namespace Dwapi.Bot.Core.Tests
         private void RemoveTestsFilesDbs()
         {
             string[] keyFiles =
-                {"dwapibot.db", "mpi.db","dwc.db"};
+                {"dwapibot.db", "mpi.db","dwc.db","ctdwc.db"};
             string[] keyDirs = {@"TestArtifacts/Database".ToOsStyle()};
 
             foreach (var keyDir in keyDirs)

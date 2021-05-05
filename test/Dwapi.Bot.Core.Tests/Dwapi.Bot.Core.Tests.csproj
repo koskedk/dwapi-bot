@@ -51,6 +51,9 @@
     <None Update="TestArtifacts\Database\dwc.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="TestArtifacts\Database\ctdwc.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

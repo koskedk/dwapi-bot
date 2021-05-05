@@ -6,7 +6,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
-namespace Dwapi.Bot.Core.Tests.Commands
+namespace Dwapi.Bot.Core.Tests.Application.Catalogs.Commands
 {
     [TestFixture]
     public class MarkPreferredSubjectsTests
